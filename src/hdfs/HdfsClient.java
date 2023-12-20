@@ -2,10 +2,10 @@ package hdfs;
 
 public class HdfsClient {
 
-    private static int numPorts[];//{3158, 3292, 3692, 3434, 3300, 3000};
-    private static String nomMachines[];//{"sodium", "leia", "tao", "goldorak", "luke", "vador"};
+    private static int numPorts[];
+    private static String nomMachines[];
     private static int nbServers;
-    private static long taille_fragment = recuptaille();//200;
+    private static long taille_fragment = recuptaille();
     private static KV cst = new KV("hi","hello");
     private static String SOURCE = System.getProperty("user.home")+"/nosave/hidoop_data/";
 	
