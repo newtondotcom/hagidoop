@@ -4,7 +4,7 @@ import interfaces.KV;
 import interfaces.NetworkReaderWriter;
 
 public class ImplNetworkRW implements NetworkReaderWriter{
-
+  
   /* Constructor */
   public ImplNetworkRW(){
 
@@ -17,7 +17,8 @@ public class ImplNetworkRW implements NetworkReaderWriter{
 
   }
 	public NetworkReaderWriter accept(){
-    return null;}
+    return null;
+  }
 	public void closeServer(){
 
   }
