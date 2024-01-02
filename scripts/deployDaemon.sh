@@ -32,4 +32,4 @@ done
 
 sleep 3
 
-java -cp bin ordo.HidoopClient data.txt line $1
+java -cp bin daemon.JobLauncher data.txt line $1

@@ -1,6 +1,13 @@
 package hdfs;
 
 public class HdfsClient {
+
+    private static int numPorts[];
+    private static String nomMachines[];
+    private static int nbServers;
+    private static long taille_fragment = recuptaille();
+    private static KV cst = new KV("hi","hello");
+    private static String SOURCE = System.getProperty("user.home")+"/nosave/hidoop_data/";
 	
 	private static void usage() {
 		System.out.println("Usage: java HdfsClient read <file>");
