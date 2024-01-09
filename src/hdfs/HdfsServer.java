@@ -11,18 +11,18 @@ public class HdfsServer {
 	public static void main(String[] args) {
 
         // Format de la commande côté client :
-		// java HdfsClient <read|write> <txt|kv> <file>
+		// java HdfsClient write <txt|kv> <file> ou java HdfsClient <read | delete> <file>
 
         try {
+            // Récupération du port
             int port = Integer.parseInt(args[0]);
 
-            // Ouverture Socket Serveur
+            // Ouverture du socket côté serveur
+            ServerSocket waitingsocket = new ServerSocket(port);
 
-            ServerSocket sSocket = new ServerSocket(port);
-            
-            boolean c = true;
-            while (c) {
-                Socket socket = sSocket.accept();
+            // Boucle infinie pour accepter les connexions des clients
+            while (true) {
+                Socket socket = waitingsocket.accept();
                 ObjectInputStream objectIS = new ObjectInputStream(socket.getInputStream());
                 String msg = (String) objectIS.readObject();
                 String[] req = msg.split("#");
@@ -30,60 +30,42 @@ public class HdfsServer {
 
                 // Switch sur la commande
                 switch (commande) {
-                    case ":DELETE" :
-                        
-                        File file = new File("/tmp/data/"+req[1]);
-                        file.delete();
-                        break;
                     
                     case ":WRITE" :
-                        
-                        //System.out.println("début write");
-                        //System.out.println(""+req[1]);
-                        //System.out.println(req[1]);
-                        //File wFile = new File(System.getProperty("user.home")+"/Téléchargements/Hidoop-master/"+req[1]);
-                        File wFile = new File("/tmp/data/");
-                        wFile.mkdir();
-                        
-                        wFile = new File("/tmp/data/"+req[1]);
-                        //System.out.println("création fichier");
-                        /*try{
-                        if (wFile.createNewFile()) {
-                            System.out.println("fichier créé");
-                        } else {
-                            System.out.println("fichier  existe déjà");
-                        }
-                        } catch(IOException e) {
-                            e.printStackTrace();
-                        }*/
-                        FileWriter fWriter = new FileWriter(wFile);
-                        BufferedWriter writr = new BufferedWriter(fWriter);
-                        writr.write(req[2], 0, req[2].length());
-                        //fWriter.write(req[2], 0, req[2].length());
-                        writr.close();
-                        fWriter.close();
-
+                        File folder = new File("/tmp/data/");
+                        Boolean exists = folder.mkdir();
+                        File wrtfile = new File("/tmp/data/"+req[1]);
+                        FileWriter fwrt = new FileWriter(wrtfile);
+                        BufferedWriter bffwrt = new BufferedWriter(fwrt);
+                        bffwrt.write(req[2], 0, req[2].length());
+                        bffwrt.close();
+                        fwrt.close();
                         break;
                     
                     case ":READ" :
-                        File rFile = new File("/tmp/data/"+ req[1]);
-                        BufferedReader bufReader = new BufferedReader(new FileReader(rFile));
+                        File rdfile = new File("/tmp/data/"+ req[1]);
+                        BufferedReader bffrd = new BufferedReader(new FileReader(rdfile));
                         String fragment = "";
-                        String d = bufReader.readLine();
-                        while (d != null) {
+                        String d = bffrd.readLine();
+                        while (d != null) { // tant qu'il y a des lignes à lire
                             fragment = fragment + d + "\n";
-                            d = bufReader.readLine();
+                            d = bffrd.readLine();
                         }
-                        ObjectOutputStream objectOS = new ObjectOutputStream(socket.getOutputStream());
-                        objectOS.writeObject(fragment);
-                        bufReader.close();
-                        objectOS.close();
+                        ObjectOutputStream objectos = new ObjectOutputStream(socket.getOutputStream());
+                        objectos.writeObject(fragment);
+                        bffrd.close();
+                        objectos.close();
+                        break;
+
+                    case ":DELETE" :
+                        File file = new File("/tmp/data/"+req[1]);
+                        Boolean deleted = file.delete();
                         break;
                 }
                 objectIS.close();
                 socket.close();
             }
-            sSocket.close();
+            waitingsocket.close();
         } catch (Exception ex) {
             ex.printStackTrace();
         }
