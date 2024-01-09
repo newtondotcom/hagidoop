@@ -32,7 +32,7 @@ public class HdfsClient {
                 String extension = inter[1];
                 ObjectOutputStream objectOS = new ObjectOutputStream(sock.getOutputStream());
                 //System.out.println("i"+Integer.toString(i)+"::::j::::"+Integer.toString(j));
-                objectOS.writeObject("CMD_DELETE" + "/@/" + nom + "_" + Integer.toString(i) + "." + extension);
+                objectOS.writeObject("CMD_DELETE" + "#" + nom + "_" + Integer.toString(i) + "." + extension);
                 objectOS.close();
                 sock.close();
             }
@@ -107,7 +107,7 @@ public class HdfsClient {
                     String nom = inter[0];
                     String extension = inter[1];
                     ObjectOutputStream objectOS = new ObjectOutputStream(socket.getOutputStream());
-                    objectOS.writeObject("CMD_WRITE" + "/@/" + nom + "_" + Integer.toString(i) + "." + extension + "/@/" + fragment);
+                    objectOS.writeObject("CMD_WRITE" + "#" + nom + "_" + Integer.toString(i) + "." + extension + "#" + fragment);
                     objectOS.close();
                     socket.close();
                     if (i%1==0){System.out.println("fragment machine " + Integer.toString(i));}
@@ -139,7 +139,7 @@ public class HdfsClient {
                     String[] inter = localFSSourceFname.split("\\.");
                     String nom = inter[0];
                     String extension = inter[1];
-                objectOS.writeObject("CMD_WRITE" + "/@/" + nom + "_" + Integer.toString(i) + "." + extension + "/@/" + fragment);
+                objectOS.writeObject("CMD_WRITE" + "#" + nom + "_" + Integer.toString(i) + "." + extension + "#" + fragment);
                 objectOS.close();
                 socket.close();
             }
@@ -168,7 +168,7 @@ public class HdfsClient {
                 //System.out.println(Integer.toString(j));
                 Socket socket = new Socket (nomMachines[j], numPorts[j]);
                 ObjectOutputStream objectOS = new ObjectOutputStream(socket.getOutputStream());
-                objectOS.writeObject("CMD_READ" + "/@/" + nom +"_"+ Integer.toString(i) + "-res" + "." + extension);
+                objectOS.writeObject("CMD_READ" + "#" + nom +"_"+ Integer.toString(i) + "-res" + "." + extension);
                 ObjectInputStream objectIS = new ObjectInputStream(socket.getInputStream());
                 String fragment = (String) objectIS.readObject();
                 fWrite.write(fragment,0,fragment.length());

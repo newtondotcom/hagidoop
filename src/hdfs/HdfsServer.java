@@ -9,8 +9,10 @@ public class HdfsServer {
 	}
 
 	public static void main(String[] args) {
+
+        // Format de la commande côté client :
 		// java HdfsClient <read|write> <txt|kv> <file>
-		// appel des méthodes précédentes depuis la ligne de commande
+
         try {
             int port = Integer.parseInt(args[0]);
 
@@ -23,7 +25,7 @@ public class HdfsServer {
                 Socket socket = sSocket.accept();
                 ObjectInputStream objectIS = new ObjectInputStream(socket.getInputStream());
                 String msg = (String) objectIS.readObject();
-                String[] req = msg.split("/@/");
+                String[] req = msg.split("#");
                 String commande = req[0];
 
                 // définition des differents cas selon la commande
