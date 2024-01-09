@@ -10,6 +10,11 @@ public class ImplFileRW implements FileReaderWriter{
   // Nom du fichier sur HDFS 
   private String fName;
 
+  public ImplFileRW(long _index, String _fName){
+    this.index = _index;
+    this.fName = _fName;
+  }
+
 	public void open(String mode){ 
 
   }

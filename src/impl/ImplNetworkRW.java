@@ -4,10 +4,12 @@ import interfaces.KV;
 import interfaces.NetworkReaderWriter;
 
 public class ImplNetworkRW implements NetworkReaderWriter{
-  
-  /* Constructor */
-  public ImplNetworkRW(){
 
+  private String destFName;
+
+  /* Constructor */
+  public ImplNetworkRW(String _destFName){
+    this.destFName = _destFName;
   }
 
   public void openServer(){

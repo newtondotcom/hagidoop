@@ -1,5 +1,8 @@
 package hdfs;
 
+import java.io.*;
+import java .net.*;
+
 public class HdfsServer {
 
 	public static void HdfsRead(String fname) {

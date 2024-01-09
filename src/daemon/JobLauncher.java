@@ -1,24 +1,72 @@
 package daemon;
 
+import java.io.FileReader;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
-import interfaces.MapReduce;
+import interfaces.*;
+import impl.*;
 
 public class JobLauncher extends UnicastRemoteObject {
 	// emplacement et port du service
-	private int nbMachine;
-	
-	private int[] port;
+	static int[] port;
+
+	static Callback cb;
+
+	// Nombre de worker équivalent au nombre de machine qui travaille
+	static int nbWorker;
+	// Liste des workers
+	static Worker[] listeWorker;
+
+	// Nombre de tâche finie parmi les workers lancés
+	static int nbTacheFinie;
+
+	// Chemin d'accès vers les fragments
+	String path = "/data/";
 
 
-	public static Daemon listeDaemon[];
-
-	public JobLauncher(int nbMachine) throws RemoteException{
-		this.nbMachine = nbMachine;
-		this.port = new int[nbMachine];
+	public JobLauncher(int _nbWorker) throws RemoteException{
+		this.nbWorker = _nbWorker;
+		this.port = new int[_nbWorker];
+		this.listeWorker = new Worker[_nbWorker];
 	}
-	public static void startJob (MapReduce mr, int format, String fname) {
-			
+
+	public static void startJob (MapReduce mr, int format, String fname) throws RemoteException{
+		try{
+			if (nbWorker == 1) {
+				// On donne le nom au fichier HDFS
+				String fSrcName = "";
+
+				// On donne le nom au fichier du résultat 
+				String fDestName = fSrcName + "_resultat";
+				
+				// On créer le reader et le writer
+				FileReaderWriter reader = new ImplFileRW(1, fSrcName);
+				NetworkReaderWriter writer = new ImplNetworkRW(fDestName);
+				
+				listeWorker[0].runMap(mr, reader, writer, cb);
+			} 
+			else {
+				for (int i = 0 ; i < nbWorker; i++) {
+					// On donne le nom au fichier HDFS
+					String fSrcName = "";
+
+					// On donne le nom au fichier du résultat 
+					String fDestName = fSrcName + "_resultat";
+
+					// On créer le reader et le writer
+					FileReaderWriter reader = new ImplFileRW(1, fSrcName);
+					NetworkReaderWriter writer = new ImplNetworkRW(fDestName);
+					
+					// compteur : si on atteint la fin de la liste de démons,
+					// retourner au début de celle-ci ; ainsi, on parcourt
+					// bien les fragments conformément à HDFS
+					
+					listeWorker[i%nbWorker].runMap(mr, reader, writer, cb);
+				}
+			}
+		} catch(Exception e){
+			e.printStackTrace();
+		}
 	}
 }
