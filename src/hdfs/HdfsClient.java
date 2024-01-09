@@ -1,5 +1,8 @@
 package hdfs;
 
+import interfaces.FileReaderWriter.*;
+import impl.ImplFileRW.*;
+
 public class HdfsClient {
 
     private static int numPorts[];
@@ -8,12 +11,28 @@ public class HdfsClient {
     private static long taille_fragment = recuptaille();
     private static KV cst = new KV("hi","hello");
     private static String SOURCE = System.getProperty("user.home")+"/nosave/hidoop_data/";
-	
-	private static void usage() {
-		System.out.println("Usage: java HdfsClient read <file>");
-		System.out.println("Usage: java HdfsClient write <txt|kv> <file>");
-		System.out.println("Usage: java HdfsClient delete <file>");
-	}
+
+    public static void main(String[] args) {
+        try {
+            if (args.length<3) {fctusage(); return;}
+	    nbServers = Integer.parseInt(args[3]);
+	    numPorts = recupport();
+	    nomMachines = recupnom();
+            switch (args[0]) {
+              case "read": HdfsRead(args[1],args[2],4); break;
+              case "delete": HdfsDelete(args[1]); break;
+              case "write": 
+                Format.Type fmt;
+                if (args.length<3) {fctusage(); return;}
+                if (args[1].equals("line")) fmt = Format.Type.LINE;
+                else if(args[1].equals("kv")) fmt = Format.Type.KV;
+                else {fctusage(); return;}
+                HdfsWrite(fmt,args[2],1);
+            }	
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
 	
     public static void HdfsDelete(String fname) {
         try{
@@ -56,8 +75,7 @@ public class HdfsClient {
             int index ;
             KV buffer = new KV();
             
-            // calculer la taille du fichier
-            
+            // Calculer la taille du fichier
         	File file = new File(SOURCE+localFSSourceFname);
         	long taille = file.length();
            // System.out.println(String.valueOf(taille));
@@ -67,84 +85,57 @@ public class HdfsClient {
             if (taille%taille_fragment != 0) { nbfragments ++;}
             System.out.println(String.valueOf(nbfragments));
             
-        	// ajouter le nombre de fragments dans le fichier node.
-        	
+        	// Ajouter le nombre de fragments dans le fichier node.
         	Namenode node = new Namenode();
         	node.Ajouter(localFSSourceFname, nbfragments);
             
-        	// le cas d'un lineformat fichier:
-        	
-            if (fmt == Type.LINE){
-            	
-            	
-                LineFormat fichier = new LineFormat(SOURCE+localFSSourceFname);
-                fichier.open(Format.OpenMode.R);
-                
-                for (int i=0; i < nbfragments; i++){
-                    
-                	index = 0;
-                    buffer = cst ;
-                    
-                    //créer le fragment à partir des lignes:
-                    
-                    fragment = "";
-                    while (index < taille_fragment){
+            Format fichier = null; 
+
+            // Fichier texte ou KV ?
+            if (fmt == FMT_TXT) {
+                fichier = new LineFormat(SOURCE + localFSSourceFname);
+            } 
+            else if (fmt == FMT_KV) {
+                fichier = new KVFormat(localFSSourceFname);
+            }
+
+            if (fichier != null) {
+                fichier.open(Format.OpenMode.R); 
+
+                for (int i = 0; i < nbfragments; i++) {
+                    int index = 0;
+                    KV buffer = cst;
+                    String fragment = "";
+
+                    // Process the fragment content
+                    while (index < taille_fragment) {
                         buffer = fichier.read();
-                        if (buffer == null){break;}
-                        fragment = fragment + buffer.v + "\n";
-                        index = (int) (fichier.getIndex()-i*taille_fragment);
+                        if (buffer == null) {
+                            break;
+                        }
+                        fragment += buffer.v + "\n";
+                        index = (int) (fichier.getIndex() - i * taille_fragment);
                     }
-                    
-                    int t = i%nbServers;
-		    //System.out.println("Début d'envoi du fragment numéro " + Integer.toString(t));
-                    //System.out.println(nomMachines[t]);
 
-                    //System.out.println("attempt to connect to "+nomMachines[t]+" num port :"+numPorts[t]);
-
-                    Socket socket = new Socket (nomMachines[t], numPorts[t]);
+                    int t = i % nbServers;
+                    Socket socket = new Socket(nomMachines[t], numPorts[t]);
 
                     String[] inter = localFSSourceFname.split("\\.");
                     String nom = inter[0];
                     String extension = inter[1];
+
                     ObjectOutputStream objectOS = new ObjectOutputStream(socket.getOutputStream());
-                    objectOS.writeObject(":WRITE" + "#" + nom + "_" + Integer.toString(i) + "." + extension + "#" + fragment);
+                    objectOS.writeObject(":WRITE" + "#" + nom + "_" + i + "." + extension + "#" + fragment);
                     objectOS.close();
                     socket.close();
-                    if (i%1==0){System.out.println("fragment machine " + Integer.toString(i));}
-		    //System.out.println("le fragment " + Integer.toString(i) + " a été bien envoyé à " + nomMachines[t]);
+
+                    if (i % 1 == 0) {
+                        System.out.println("fragment machine " + i);
+                    }
                 }
+
                 fichier.close();
-            }else if (fmt == Type.KV){
-            
-            KVFormat fichier = new KVFormat(localFSSourceFname);
-            fichier.open(Format.OpenMode.R);
-            
-            for (int i=0; i < nbfragments ; i++){
-                index = 0;
-                buffer =  cst;
-                
-                while (index < taille_fragment){
-                    buffer = fichier.read();
-                    if (buffer == null){break;}
-                    fragment = fragment + buffer.v + "\n";
-                    index = (int) (fichier.getIndex()-i*taille_fragment);
-                }
-                // il se trouve nécessaire de réinitialiser le buffer à une valeur non nulle du fait que
-                // la condition d'entrer dans la boucle while est que buffer != null
-                
-                int t = i%nbServers;
-                
-                Socket socket = new Socket (nomMachines[t], numPorts[t]);
-                ObjectOutputStream objectOS = new ObjectOutputStream(socket.getOutputStream());
-                    String[] inter = localFSSourceFname.split("\\.");
-                    String nom = inter[0];
-                    String extension = inter[1];
-                objectOS.writeObject(":WRITE" + "#" + nom + "_" + Integer.toString(i) + "." + extension + "#" + fragment);
-                objectOS.close();
-                socket.close();
             }
-            fichier.close();
-        }
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -182,26 +173,8 @@ public class HdfsClient {
         }
     }
 
-
-	public static void main(String[] args) {
-        try {
-            if (args.length<3) {usage(); return;}
-	    nbServers = Integer.parseInt(args[3]);
-	    numPorts = recupport();
-	    nomMachines = recupnom();
-            switch (args[0]) {
-              case "read": HdfsRead(args[1],args[2],4); break;
-              case "delete": HdfsDelete(args[1]); break;
-              case "write": 
-                Format.Type fmt;
-                if (args.length<3) {usage(); return;}
-                if (args[1].equals("line")) fmt = Format.Type.LINE;
-                else if(args[1].equals("kv")) fmt = Format.Type.KV;
-                else {usage(); return;}
-                HdfsWrite(fmt,args[2],1);
-            }	
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-    }
+	private static void fctusage() {
+		System.out.println("Usage: java HdfsClient read <file|file>");
+		System.out.println("Usage: java HdfsClient write <txt|kv> <file>");
+	}
 }

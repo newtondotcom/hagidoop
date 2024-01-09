@@ -21,7 +21,7 @@ public class HdfsServer {
             ServerSocket waitingsocket = new ServerSocket(port);
 
             // Boucle infinie pour accepter les connexions des clients
-            Boolean running = true; // variable pour lancer le script
+            Boolean running = true; // variable pour lancer le script sinon erreur Java
             while (running) {
                 Socket socket = waitingsocket.accept();
                 ObjectInputStream objectIS = new ObjectInputStream(socket.getInputStream());

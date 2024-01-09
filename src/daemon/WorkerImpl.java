@@ -28,7 +28,7 @@ public class WorkerImpl extends UnicastRemoteObject  implements Worker{
   public WorkerImpl() throws RemoteException{
   }
 
-	private static void usage() {
+	private static void fctusage() {
 		System.out.println("Utilisation : java DaemonImpl port");
 	}
 
@@ -63,7 +63,7 @@ public class WorkerImpl extends UnicastRemoteObject  implements Worker{
 		// vérifier le bon usage du daemon
 		try {
 			if (args.length < 1) {
-				usage();
+				fctusage();
 				System.exit(1);
 			}
 			
