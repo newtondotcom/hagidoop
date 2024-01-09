@@ -28,15 +28,15 @@ public class HdfsServer {
                 String[] req = msg.split("#");
                 String commande = req[0];
 
-                // définition des differents cas selon la commande
+                // Switch sur la commande
                 switch (commande) {
-                    case "CMD_DELETE" :
+                    case ":DELETE" :
                         
                         File file = new File("/tmp/data/"+req[1]);
                         file.delete();
                         break;
                     
-                    case "CMD_WRITE" :
+                    case ":WRITE" :
                         
                         //System.out.println("début write");
                         //System.out.println(""+req[1]);
@@ -64,10 +64,8 @@ public class HdfsServer {
                         fWriter.close();
 
                         break;
-                        
-                        
                     
-                    case "CMD_READ" :
+                    case ":READ" :
                         File rFile = new File("/tmp/data/"+ req[1]);
                         BufferedReader bufReader = new BufferedReader(new FileReader(rFile));
                         String fragment = "";
