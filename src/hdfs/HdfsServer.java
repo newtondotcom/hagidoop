@@ -1,12 +1,13 @@
 package hdfs;
 
+import impl.ImplFileRW;
+import interfaces.FileReaderWriter;
+import interfaces.KV;
+
 import java.io.*;
 import java .net.*;
 
 public class HdfsServer {
-
-	public static void HdfsRead(String fname) {
-	}
 
 	public static void main(String[] args) {
 
@@ -35,26 +36,21 @@ public class HdfsServer {
                     case ":WRITE" :
                         File folder = new File("/tmp/data/");
                         Boolean exists = folder.mkdir();
-                        File wrtfile = new File("/tmp/data/"+req[1]);
-                        FileWriter fwrt = new FileWriter(wrtfile);
-                        BufferedWriter bffwrt = new BufferedWriter(fwrt);
-                        bffwrt.write(req[2], 0, req[2].length());
-                        bffwrt.close();
-                        fwrt.close();
+                        ImplFileRW fileRW = new ImplFileRW(0, "/tmp/data/"+req[1], "w", FileReaderWriter.FMT_KV);
+                        fileRW.write(req[2]);
                         break;
                     
                     case ":READ" :
-                        File rdfile = new File("/tmp/data/"+ req[1]);
-                        BufferedReader bffrd = new BufferedReader(new FileReader(rdfile));
-                        String fragment = "";
-                        String d = bffrd.readLine();
-                        while (d != null) { // tant qu'il y a des lignes à lire
-                            fragment = fragment + d + "\n";
-                            d = bffrd.readLine();
+                        ImplFileRW fileRW2 = new ImplFileRW(0, "/tmp/data/"+req[1], "r", FileReaderWriter.FMT_KV);
+                        KV d = fileRW2.read();
+                        StringBuilder fragment = new StringBuilder();
+                        while (d != null) {
+                            fragment.append(d).append("\n");
+                            d = fileRW2.read();
                         }
                         ObjectOutputStream objectos = new ObjectOutputStream(socket.getOutputStream());
                         objectos.writeObject(fragment);
-                        bffrd.close();
+                        fileRW2.close();
                         objectos.close();
                         break;
 
