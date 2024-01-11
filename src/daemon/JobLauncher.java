@@ -3,6 +3,7 @@ package daemon;
 import java.io.*;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Properties;
 
 import interfaces.*;
 import impl.*;
@@ -70,11 +71,8 @@ public class JobLauncher extends UnicastRemoteObject {
 		}
 	}
 	public static void main(String[] args) {
-		Map<String, Integer> hash = new HashMap<>();
-		try {
-				FileOutputStream fichier = new FileOutputStream(nameNode);
-		} catch ( Exception e){
-			e.printStackTrace();
-		}
+		Properties properties = config.Project.loadProperties(config.Project.nameNode);
+		String serverAddress = properties.getProperty("server.address");
+    String port = properties.getProperty("server.port");
 	}
 }

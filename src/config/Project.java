@@ -9,7 +9,7 @@ public class Project {
     public static String PATH = "/home/raugerea2/Téléchargements/Hagidoop/";
     public static String TEMP_PATH = "/tmp/";
 
-    private static String nameNode = "main.cfg";
+    public static String nameNode = "main.cfg";
 
     public static void main(String[] args) {
         Map<String, Integer> hash = new HashMap<>();
