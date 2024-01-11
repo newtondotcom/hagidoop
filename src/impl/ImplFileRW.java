@@ -13,23 +13,32 @@ public class ImplFileRW implements FileReaderWriter{
   private long index;
   private transient BufferedReader br;
   private transient BufferedWriter bw;
-  // Nom du fichier sur HDFS 
+  private Integer format;
+
+  private String mode;
+
+  // Nom du fichier sur HDFS
   private String fName;
 
-  public ImplFileRW(long _index, String _fName, String _mode){
+  public ImplFileRW(long _index, String _fName, String _mode, int _format){
     this.index = _index;
     this.fName = _fName;
+    this.format = _format;
     open(_mode);
   }
 
   public void open(String _mode){
     try{
+        this.mode = _mode;
         if (_mode.equals("r")){
           this.br = new BufferedReader(new FileReader(this.fName));
-        } else {
+        }
+        else if (_mode.equals("w")){
           this.bw = new BufferedWriter(new FileWriter(this.fName));
         }
+        else {
           System.out.println("Mode invalide");
+        }
     } catch (Exception e){
           e.printStackTrace();
     }
@@ -52,6 +61,17 @@ public class ImplFileRW implements FileReaderWriter{
       bw.newLine();
       bw.flush();
       index += s.length();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public void write(String record) {
+    try {
+      bw.write(record, 0, record.length());
+      bw.newLine();
+      bw.flush();
+      index += record.length();
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -83,7 +103,11 @@ public class ImplFileRW implements FileReaderWriter{
   public void setFname(String _fname){
     this.fName = _fname;
   }
-	public String getFname(){
+  public String getFname(){
     return this.fName;
+  }
+
+  public int getFileLength(){
+    return (int) new File(this.fName).length();
   }
 }
