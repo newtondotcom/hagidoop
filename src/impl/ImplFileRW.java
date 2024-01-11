@@ -11,20 +11,10 @@ import interfaces.FileReaderWriter;
 public class ImplFileRW implements FileReaderWriter{
 
   private long index;
-
+  private transient BufferedReader br;
+  private transient BufferedWriter bw;
   // Nom du fichier sur HDFS 
   private String fName;
-
-  // Port
-  private int port;
-
-  // ServerSocket et Socket
-  ServerSocket server;
-  Socket s; 
-
-  // Les différents canaux 
-  OutputStream os;
-  InputStream is;
 
   public ImplFileRW(long _index, String _fName, String _mode){
     this.index = _index;
@@ -32,35 +22,58 @@ public class ImplFileRW implements FileReaderWriter{
     open(_mode);
   }
 
-	public void open(String _mode){ 
-    try {
-      server = new ServerSocket(port);
-      s = server.accept();
-
-      if (_mode == "W") /* Mode Ecriture */ {
-        OutputStream os = s.getOutputStream();
-      } else if(_mode == "R") /* Mode Lecture */ {
-        InputStream is = s.getInputStream();
-      } else {
-        System.err.println("Erreur mauvais mode");
-      }
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
+  public void open(String _mode){
+    try{
+        if (_mode.equals("r")){
+          this.br = new BufferedReader(new FileReader(this.fName));
+        } else {
+          this.bw = new BufferedWriter(new FileWriter(this.fName));
+        }
+          System.out.println("Mode invalide");
+    } catch (Exception e){
+          e.printStackTrace();
+    }
   }
-	public void close(){
-    try {
-      server.close();
-      s.close();
-    } catch (IOException e){
+  public void close(){
+    try{
+      if (this.br != null){
+        this.br.close();
+      } else {
+        this.bw.close();
+      }
+    } catch (Exception e){
       e.printStackTrace();
     }
   }
-  public void write(KV record){
+  public void write(KV record) {
+    try {
+      String s = record.k+KV.SEPARATOR+record.v;
+      bw.write(s, 0, s.length());
+      bw.newLine();
+      bw.flush();
+      index += s.length();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
 
-  } 
-  public KV read(){
-    return null;
+  public KV read() {
+    KV kv = new KV();
+    try {
+      while (true) {
+        String l = br.readLine();
+        if (l == null) return null;
+        index += l.length();
+        String[] tokens = l.split(KV.SEPARATOR);
+        if (tokens.length != 2) continue;
+        kv.k = tokens[0];
+        kv.v = tokens[1];
+        return kv;
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+      return null;
+    }
   }
 
   
