@@ -8,7 +8,6 @@ import java.rmi.server.UnicastRemoteObject;
 import java.text.Format;
 
 import interfaces.Callback;
-import interfaces.CompteurTache;
 import interfaces.FileReaderWriter;
 import interfaces.Map;
 import interfaces.NetworkReaderWriter;
@@ -35,7 +34,7 @@ public class WorkerImpl extends UnicastRemoteObject  implements Worker{
   public void runMap (Map m, FileReaderWriter reader, NetworkReaderWriter writer, Callback cb) throws RemoteException{
 
 		try{
-			// On ouvre le reader et le writer
+			// On ouvre la connexion du reader et du writer
 			reader.open("R");
 			writer.openServer();
 			
@@ -44,8 +43,6 @@ public class WorkerImpl extends UnicastRemoteObject  implements Worker{
 
 			// Utiliser Callback pour prévenir que le traitement est terminé
 			
-			
-
 			// On ferme le reader et le writer
 			reader.close();
 			writer.closeServer();

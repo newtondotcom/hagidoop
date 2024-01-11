@@ -3,6 +3,7 @@ package config;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 public class Project {
     public static String PATH = "/home/raugerea2/Téléchargements/Hagidoop/";
@@ -20,5 +21,15 @@ public class Project {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static Properties loadProperties(String _namenode) {
+        Properties properties = new Properties();
+        try (FileInputStream input = new FileInputStream(_namenode)) {
+            properties.load(input);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return properties;
     }
 }

@@ -1,11 +1,12 @@
 package daemon;
 
-import java.io.FileReader;
+import java.io.*;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
 import interfaces.*;
 import impl.*;
+import config.*;
 
 public class JobLauncher extends UnicastRemoteObject {
 	// emplacement et port du service
@@ -23,7 +24,6 @@ public class JobLauncher extends UnicastRemoteObject {
 
 	// Chemin d'accès vers les fragments
 	String path = "/data/";
-
 
 	public JobLauncher(int _nbWorker) throws RemoteException{
 		this.nbWorker = _nbWorker;
@@ -66,6 +66,14 @@ public class JobLauncher extends UnicastRemoteObject {
 				}
 			}
 		} catch(Exception e){
+			e.printStackTrace();
+		}
+	}
+	public static void main(String[] args) {
+		Map<String, Integer> hash = new HashMap<>();
+		try {
+				FileOutputStream fichier = new FileOutputStream(nameNode);
+		} catch ( Exception e){
 			e.printStackTrace();
 		}
 	}
