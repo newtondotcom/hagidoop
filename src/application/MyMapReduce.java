@@ -38,10 +38,14 @@ public class MyMapReduce implements MapReduce {
 	}
 
 	public static void main(String args[]) {
-		long t1 = System.currentTimeMillis();
-		JobLauncher.startJob(new MyMapReduce(), FileReaderWriter.FMT_TXT, args[0]);
-		long t2 = System.currentTimeMillis();
-		System.out.println("time in ms ="+(t2-t1));
-		System.exit(0);
+		try {
+			long t1 = System.currentTimeMillis();
+			JobLauncher.startJob(new MyMapReduce(), FileReaderWriter.FMT_TXT, args[0]);
+			long t2 = System.currentTimeMillis();
+			System.out.println("time in ms ="+(t2-t1));
+			System.exit(0);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

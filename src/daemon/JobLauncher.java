@@ -42,7 +42,7 @@ public class JobLauncher extends UnicastRemoteObject {
 				String fDestName = fSrcName + "_resultat";
 				
 				// On créer le reader et le writer
-				FileReaderWriter reader = new ImplFileRW(1, fSrcName);
+				FileReaderWriter reader = new ImplFileRW(1, fSrcName, "r", format);
 				NetworkReaderWriter writer = new ImplNetworkRW(fDestName);
 				
 				listeWorker[0].runMap(mr, reader, writer, cb);
@@ -56,7 +56,7 @@ public class JobLauncher extends UnicastRemoteObject {
 					String fDestName = fSrcName + "_resultat";
 
 					// On créer le reader et le writer
-					FileReaderWriter reader = new ImplFileRW(1, fSrcName);
+					FileReaderWriter reader = new ImplFileRW(1, fSrcName, "r", format);
 					NetworkReaderWriter writer = new ImplNetworkRW(fDestName);
 					
 					// compteur : si on atteint la fin de la liste de démons,
