@@ -18,28 +18,40 @@ public class HdfsClient {
     private static int nbServers;
     public static String path = "src/config/main.cfg";
     private static final Integer taille_fragment = recuptaille(path);
-    private static KV cst = new KV("hi","hello");
-    private static String SOURCE = System.getProperty("user.home")+"/nosave/hagidoop_data/";
-    private static Storage node;
+    private static final KV cst = new KV("hi","hello");
+    private static final String SOURCE_INPUT = System.getProperty("user.home")+"/nosave/hagidoop_data/in/";
+    private static final String SOURCE_OUTPUT = System.getProperty("user.home")+"/nosave/hagidoop_data/out/";
+    private static PersistentStorage node;
 
     public static void main(String[] args) {
         try {
             if (args.length<2) {fctusage(); return;}
-            node = new Storage();
+            node = new PersistentStorage();
+            node.ListFragments();
             nbServers = recupnb(path);
             numPorts = recupport(path,nbServers);
             nomMachines = recupnom(path,nbServers);
+            int fmt = 0;
             switch (args[0]) {
-              case "read": HdfsRead(args[2]); break;
+              case "read":
+                  try {
+                      String extension = args[2].split("\\.")[1];
+                      if (!args[1].equals(extension)) {fctusage(); return;}
+                  } catch (Exception e) {
+                      fctusage();
+                      return;
+                  }
+                  HdfsRead(args[2]); break;
               case "delete": HdfsDelete(args[1]); break;
-              case "write": 
-                int fmt;
-                if (args.length<3) {fctusage(); return;}
-                if (args[1].equals("txt")) {
-                    fmt = FMT_TXT;
-                } else if(args[1].equals("kv")) {
-                    fmt = FMT_KV;
-                } else {fctusage(); return;}
+              case "write":
+                  try {
+                      fmt = args[1].equals("kv") ? FMT_KV : FMT_TXT;
+                      String extension = args[2].split("\\.")[1];
+                      if (!args[1].equals(extension)) {fctusage(); return;}
+                  } catch (Exception e) {
+                      fctusage();
+                      return;
+                  }
                 HdfsWrite(fmt,args[2]);
             }	
         } catch (Exception ex) {
@@ -50,7 +62,11 @@ public class HdfsClient {
     public static void HdfsDelete(String fname) {
         try{
         	int j ;
-        	int nbfragments = node.getNbFragments(fname);	// nbs de fragments du fichier
+            int nbfragments = node.getNbFragments(fname);
+            if (nbfragments == 0) {
+                System.out.println("Le fichier n'existe pas");
+                nbfragments = 1;
+            }
         	
             for (int i = 0; i < nbfragments; i++) {
             	j = i % nbServers;
@@ -59,7 +75,6 @@ public class HdfsClient {
                 String nom = inter[0];
                 String extension = inter[1];
                 ObjectOutputStream objectOS = new ObjectOutputStream(sock.getOutputStream());
-                //System.out.println("i"+Integer.toString(i)+"::::j::::"+Integer.toString(j));
                 objectOS.writeObject(":DELETE" + "#" + nom + "_" + Integer.toString(i) + "." + extension);
                 objectOS.close();
                 sock.close();
@@ -67,6 +82,8 @@ public class HdfsClient {
         	
         	//supprimer les info de fname du fichier node.
         	node.removeFragment(fname);
+
+            System.out.println("OPERATION DELETE FINISHED on file "+fname);
             
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -75,8 +92,7 @@ public class HdfsClient {
 
 	public static void HdfsWrite(int fmt, String fname) {
          try {
-             System.out.println("hello this is the file "+SOURCE+fname);
-            ImplFileRW fichierLocal = new ImplFileRW((long) 0, SOURCE+fname, "r", fmt);
+            ImplFileRW fichierLocal = new ImplFileRW((long) 0, SOURCE_INPUT+fname, "r", fmt);
         	long taille = fichierLocal.getFileLength();
             System.out.println(String.valueOf(taille));
 
@@ -86,7 +102,6 @@ public class HdfsClient {
 
         	// Ajouter le nombre de fragments dans le fichier node.
         	node.addFragment(fname, nbfragments);
-
 
                 for (int i = 0; i < nbfragments; i++) {
 
@@ -122,16 +137,22 @@ public class HdfsClient {
 
                     String[] inter = fname.split("\\.");
                     String nom = inter[0];
-                    String extension = inter[1];
+                    String extension;
+                    if (fmt == FMT_KV) {
+                        extension = "kv";
+                    } else {
+                        extension = "txt";
+                    }
 
                     ObjectOutputStream objectOS = new ObjectOutputStream(socket.getOutputStream());
-                    objectOS.writeObject(":WRITE" + "#" + nom + "_" + i + "." + extension + "#" + fragment.toString());
+                    String obj = ":WRITE" + "#" + nom + "_" + i + "." + extension + "#" + fragment.toString();
+                    objectOS.writeObject(obj);
                     objectOS.close();
                     socket.close();
-
-                    System.out.println("fragment machine " + i);
                 }
              fichierLocal.close();
+
+                System.out.println("OPERATION WRITE FINISHED on file "+fname);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -139,30 +160,30 @@ public class HdfsClient {
     }
 
     public static void HdfsRead(String fname) {
-        //String fname, String fname, int nb
-
         String[] inter = fname.split("\\.");
         String nom = inter[0];
         String extension = inter[1];
-        int nb = node.getNbFragments(fname);
+        int nbfragments = node.getNbFragments(fname);
+        if (nbfragments == 0) {
+            System.out.println("Le fichier n'existe pas");
+            nbfragments = 1;
+        }
         int format ;
         if (extension.equals("txt")) {
             format = FMT_TXT;
         } else {
             format = FMT_KV;
         }
-        ImplFileRW fileLocal = new ImplFileRW((long) 0, System.getProperty("user.home")+"/Téléchargements/Hagidoop/dl/"+fname, "w",format);
+        ImplFileRW fileLocal = new ImplFileRW((long) 0, SOURCE_OUTPUT+fname, "w",format);
         try {
             int j;
-            System.out.println("hello this is the file ~/Téléchargements/Hidoopgit/"+fname);
-            int nbfragments = node.getNbFragments(fname);
+            System.out.println("hello this is the file "+fname);
+            System.out.println(String.valueOf(nbfragments)+" fragment(s)");
             for (int i = 0; i < nbfragments; i++) {
-                //System.out.println(Integer.toString(i));
-                j = i % nb;
-                //System.out.println(Integer.toString(j));
+                j = i % nbfragments;
                 Socket socket = new Socket (nomMachines[j], numPorts[j]);
                 ObjectOutputStream objectOS = new ObjectOutputStream(socket.getOutputStream());
-                objectOS.writeObject(":READ" + "#" + nom +"_"+ Integer.toString(i) + "-res" + "." + extension);
+                objectOS.writeObject(":READ" + "#" + nom +"_"+ Integer.toString(i) + "." + extension);
                 ObjectInputStream objectIS = new ObjectInputStream(socket.getInputStream());
                 String fragment = (String) objectIS.readObject();
                 fileLocal.write(fragment);
@@ -171,6 +192,8 @@ public class HdfsClient {
                 socket.close();
             }
             fileLocal.close();
+
+            System.out.println("OPERATION READ FINISHED on file "+fname);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -179,5 +202,7 @@ public class HdfsClient {
 	private static void fctusage() {
 		System.out.println("Usage: java HdfsClient read <file>");
 		System.out.println("Usage: java HdfsClient write <txt|kv> <file>");
+        System.out.println("Usage: java HdfsClient delete <file>");
+        System.out.println("Note : you must write a kv file into a kv format and a txt file into a txt format");
 	}
 }
