@@ -3,8 +3,6 @@ package impl;
 import interfaces.KV;
 
 import java.io.*;
-import java.net.ServerSocket;
-import java.net.Socket;
 
 import interfaces.FileReaderWriter;
 
@@ -13,17 +11,14 @@ public class ImplFileRW implements FileReaderWriter{
   private long index;
   private transient BufferedReader br;
   private transient BufferedWriter bw;
-  private Integer format;
-
-  private String mode;
 
   // Nom du fichier sur HDFS
   private String fName;
+  private String mode;
 
-  public ImplFileRW(long _index, String _fName, String _mode, int _format){
+  public ImplFileRW(long _index, String _fName, String _mode, int format){
     this.index = _index;
     this.fName = _fName;
-    this.format = _format;
     open(_mode);
   }
 

@@ -76,7 +76,7 @@ public class HdfsClient {
 
 	public static void HdfsWrite(int fmt, String fname) {
          try {
-             ImplFileRW fichierLocal = new ImplFileRW((long) 0, SOURCE+fname, "r", fmt);
+            ImplFileRW fichierLocal = new ImplFileRW((long) 0, SOURCE+fname, "r", fmt);
         	long taille = fichierLocal.getFileLength();
 
         	int nbfragments = (int) (taille/taille_fragment);

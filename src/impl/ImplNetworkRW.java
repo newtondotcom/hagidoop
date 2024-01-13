@@ -13,32 +13,32 @@ import interfaces.NetworkReaderWriter;
 
 public class ImplNetworkRW implements NetworkReaderWriter{
 
-  private String destFName;
   public int port;
 
   // Stream
   OutputStream os;
   InputStream is;
 
-  public static ServerSocket ssck;
-  public static Socket s;
+  public ServerSocket ssck;
+  public Socket s;
 
-  public static String host;
+  public String host;
 
   /* Constructor */
-  public ImplNetworkRW(int _port){
+  public ImplNetworkRW(int _port, String _host){
     this.port = _port;
+    this.host = _host;
   }
 
   public void openServer(){
-    try(ServerSocket ssck = new ServerSocket(port)){
+    try(ServerSocket ssck = new ServerSocket(this.port)){
       this.ssck = ssck;
     } catch (Exception e){
       e.printStackTrace();
     }
   }
 	public void openClient(){
-    try(Socket ss = new Socket(host, port)){
+    try(Socket ss = new Socket(this.host, this.port)){
       this.s = ss;
     } catch (Exception e){
       e.printStackTrace();
@@ -50,7 +50,7 @@ public class ImplNetworkRW implements NetworkReaderWriter{
       is = s.getInputStream();
       os = s.getOutputStream();
 
-      return new ImplNetworkRW(port);
+      return new ImplNetworkRW(this.port, this.host);
     } catch (Exception e){
       e.printStackTrace();
     }

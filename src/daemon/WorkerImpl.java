@@ -15,10 +15,8 @@ public class WorkerImpl extends UnicastRemoteObject  implements Worker{
 
   // Registre du service daemon
   static Registry registre;
-  // Port du service
-	static int port;
 	//
-	static String host;
+	static String host = "localhost";
 
 	/* 
 	 * Constructeur
@@ -26,25 +24,23 @@ public class WorkerImpl extends UnicastRemoteObject  implements Worker{
   public WorkerImpl() throws RemoteException{
   }
 
-	private static void fctusage() {
-		System.out.println("Utilisation : java DaemonImpl port");
-	}
 
   public void runMap (Map m, FileReaderWriter reader, NetworkReaderWriter writer, Callback cb) throws RemoteException{
 
 		try{
 			// On ouvre la connexion du reader et du writer
-			reader.open("R");
-			writer.openServer();
+			reader.open("r");
+			writer.openClient();
 			
 			// Lancer la fonction map sur le fragment de fichier
 			m.map(reader, writer);
 
 			// Utiliser Callback pour prévenir que le traitement est terminé
 			
+			
 			// On ferme le reader et le writer
 			reader.close();
-			writer.closeServer();
+			writer.closeClient();
 		} catch (Exception e){
 			e.printStackTrace();
 		}
@@ -59,11 +55,11 @@ public class WorkerImpl extends UnicastRemoteObject  implements Worker{
 		// vérifier le bon usage du daemon
 		try {
 			if (args.length < 1) {
-				fctusage();
+				System.out.println("DaemonImpl port non donnée");
 				System.exit(1);
 			}
 			
-			port = Integer.parseInt(args[0]);
+			int port = Integer.parseInt(args[0]);
 			host = "localhost";
 			
 			// Création du serveur de noms sur le port indiqué
@@ -74,14 +70,13 @@ public class WorkerImpl extends UnicastRemoteObject  implements Worker{
 				e.printStackTrace();
 			}
 			
-			String url = "//" + host + ":" + port + "/Daemon";
+			String url = "//" + host + ":" + port + "/Worker";
 			
 			// Inscription auprès du registre
 			Naming.bind(url, new WorkerImpl());
 			
 		} catch (Exception e) {
 			e.printStackTrace();
-			
 		}
 	}
 }
