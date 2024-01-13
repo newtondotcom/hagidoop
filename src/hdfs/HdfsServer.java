@@ -7,6 +7,7 @@ import interfaces.KV;
 import java.io.*;
 import java .net.*;
 import java.util.Arrays;
+import java.util.Objects;
 
 public class HdfsServer {
 
@@ -30,6 +31,9 @@ public class HdfsServer {
                 String msg = (String) objectIS.readObject();
                 String[] req = msg.split("#");
                 String commande = req[0];
+                String extension = req[1].split("\\.")[1];
+                int type = 0;
+                if (extension.equals("kv")) type = FileReaderWriter.FMT_KV;
 
                 // Switch sur la commande
                 switch (commande) {
@@ -37,27 +41,38 @@ public class HdfsServer {
                     case ":WRITE" :
                         File folder = new File("/tmp/data/");
                         Boolean exists = folder.mkdir();
-                        ImplFileRW fileRW = new ImplFileRW(0, "/tmp/data/"+req[1], "w", FileReaderWriter.FMT_KV);
-                        fileRW.write(req[2]);
+                        ImplFileRW fileRW = new ImplFileRW(0, "/tmp/data/"+req[1], "w", type);
+                        String content = req[2];
+                        fileRW.write(content.strip().trim());
+                        fileRW.close();
+                        System.out.println("OPERATION WRITE FINISHED on file "+req[1]);
                         break;
                     
                     case ":READ" :
-                        ImplFileRW fileRW2 = new ImplFileRW(0, "/tmp/data/"+req[1], "r", FileReaderWriter.FMT_KV);
-                        KV d = fileRW2.read();
+                        ImplFileRW fileRW2 = new ImplFileRW(0, "/tmp/data/"+req[1], "r", type);
                         StringBuilder fragment = new StringBuilder();
-                        while (d != null) {
-                            fragment.append(d).append("\n");
-                            d = fileRW2.read();
+                        String d = "";
+                        while (true) {
+                            d = String.valueOf(fileRW2.readtxt());
+                            if (!Objects.equals(d, "null") && d != null) {
+                                fragment.append(d).append("\n");
+                                System.out.println(d);
+                            } else {
+                                break;
+                            }
                         }
                         ObjectOutputStream objectos = new ObjectOutputStream(socket.getOutputStream());
-                        objectos.writeObject(fragment);
+                        objectos.writeObject(fragment.toString());
                         fileRW2.close();
                         objectos.close();
+
+                        System.out.println("OPERATION READ FINISHED on file "+req[1]);
                         break;
 
                     case ":DELETE" :
                         File file = new File("/tmp/data/"+req[1]);
-                        Boolean deleted = file.delete();
+                        boolean deleted = file.delete();
+                        System.out.println("OPERATION DELETE FINISHED on file "+req[1]+" : "+deleted);
                         break;
                 }
                 objectIS.close();
