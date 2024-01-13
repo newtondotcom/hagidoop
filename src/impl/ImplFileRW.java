@@ -91,6 +91,18 @@ public class ImplFileRW implements FileReaderWriter{
     }
   }
 
+  public String readtxt(){
+    try {
+      String l = br.readLine();
+      if (l == null) return null;
+      index += l.length();
+      return l;
+    } catch (IOException e) {
+      e.printStackTrace();
+      return null;
+    }
+  }
+
   
   public long getIndex(){
     return this.index;
