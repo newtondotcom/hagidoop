@@ -13,21 +13,20 @@ import static interfaces.FileReaderWriter.FMT_TXT;
 
 public class HdfsClient {
 
-    private static int numPorts[];
-    private static String nomMachines[];
+    private static int[] numPorts;
+    private static String[] nomMachines;
     private static int nbServers;
-    public static String path = "src/config/config_hidoop.cfg";
+    public static String path = "src/config/main.cfg";
     private static final Integer taille_fragment = recuptaille(path);
     private static KV cst = new KV("hi","hello");
-    private static String SOURCE = System.getProperty("user.home")+"/nosave/hidoop_data/";
-
+    private static String SOURCE = System.getProperty("user.home")+"/nosave/hagidoop_data/";
     private static Storage node;
 
     public static void main(String[] args) {
         try {
-            if (args.length<3) {fctusage(); return;}
+            if (args.length<2) {fctusage(); return;}
             node = new Storage();
-            nbServers = Integer.parseInt(args[3]);
+            nbServers = recupnb(path);
             numPorts = recupport(path,nbServers);
             nomMachines = recupnom(path,nbServers);
             switch (args[0]) {
@@ -36,7 +35,7 @@ public class HdfsClient {
               case "write": 
                 int fmt;
                 if (args.length<3) {fctusage(); return;}
-                if (args[1].equals("line")) {
+                if (args[1].equals("txt")) {
                     fmt = FMT_TXT;
                 } else if(args[1].equals("kv")) {
                     fmt = FMT_KV;
@@ -76,12 +75,14 @@ public class HdfsClient {
 
 	public static void HdfsWrite(int fmt, String fname) {
          try {
+             System.out.println("hello this is the file "+SOURCE+fname);
             ImplFileRW fichierLocal = new ImplFileRW((long) 0, SOURCE+fname, "r", fmt);
         	long taille = fichierLocal.getFileLength();
+            System.out.println(String.valueOf(taille));
 
         	int nbfragments = (int) (taille/taille_fragment);
             if (taille%taille_fragment != 0) { nbfragments ++;}
-            System.out.println(String.valueOf(nbfragments));
+            System.out.println(String.valueOf(nbfragments)+" fragment(s)");
 
         	// Ajouter le nombre de fragments dans le fichier node.
         	node.addFragment(fname, nbfragments);
@@ -91,17 +92,29 @@ public class HdfsClient {
 
                     int index = 0;
                     KV buffer = cst;
+                    String buffertxt = "";
                     StringBuilder fragment = new StringBuilder();
 
                     // Process the fragment content
                     while (index < taille_fragment) {
-                        buffer = fichierLocal.read();
-                        if (buffer == null) {
-                            break;
+                        if (fmt == FMT_KV) {
+                            buffer = fichierLocal.read();
+                            if (buffer == null) {
+                                break;
+                            }
+                            fragment.append(buffer.k).append(KV.SEPARATOR).append(buffer.v).append("\n");
+                            index = (int)(fichierLocal.getIndex() - i * taille_fragment);
+                        } else if (fmt == FMT_TXT) {
+                            buffertxt = fichierLocal.readtxt();
+                            if (buffertxt == null) {
+                                break;
+                            }
+                            fragment.append(buffertxt).append("\n");
+                            index = (int)(fichierLocal.getIndex() - i * taille_fragment);
                         }
-                        fragment.append(buffer.v).append("\n");
-                        index = (int)(fichierLocal.getIndex() - i * taille_fragment);
                     }
+
+                    //System.exit(0);
 
                     int t = i % nbServers;
 
@@ -164,7 +177,7 @@ public class HdfsClient {
     }
 
 	private static void fctusage() {
-		System.out.println("Usage: java HdfsClient read <file|file>");
+		System.out.println("Usage: java HdfsClient read <file>");
 		System.out.println("Usage: java HdfsClient write <txt|kv> <file>");
 	}
 }
