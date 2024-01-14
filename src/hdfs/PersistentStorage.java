@@ -6,7 +6,7 @@ import java.util.Map;
 
 public class PersistentStorage {
     public static String PATH = "C:\\Users\\helen\\Documents\\Github\\hagidoop\\";
-    private static final String FILE_NAME = "dataMap.ser";
+    private static final String FILE_NAME = "src/io/tmp/dataMap.ser";
 
     private Map<String, Integer> fragments;
 
@@ -27,7 +27,12 @@ public class PersistentStorage {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(PATH + FILE_NAME))) {
             restoredMap = (Map<String, Integer>) ois.readObject();
         } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
+            File file = new File(PATH + FILE_NAME);
+            try {
+                file.createNewFile();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
         }
         return restoredMap;
     }

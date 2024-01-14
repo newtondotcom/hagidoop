@@ -30,6 +30,5 @@ for index in ${!tabpc[*]}; do
   ssh ${tabpc[$index]} java -cp ${chemin}/bin ordo.DaemonImpl ${tabph[$index]} &
 done
 
-sleep 3
-
-java -cp bin daemon.JobLauncher data.txt line $1
+#sleep 3
+#java -cp bin daemon.JobLauncher data.txt line $1

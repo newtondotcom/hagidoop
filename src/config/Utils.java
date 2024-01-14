@@ -33,31 +33,6 @@ public class Utils {
 
     }
 
-    // récupérer le nombre de machines indiqué dans le fichier de configuration
-    public static int recupnb(String path) {
-        File file = new File(path);
-        int cpt = 0;
-        BufferedReader br;
-        int nbMachines = 0;
-        try {
-            br = new BufferedReader(new FileReader(file));
-            String st;
-            while ((st = br.readLine()) != null) {
-                if (!st.startsWith("#")) {
-                    if (cpt == 2) {
-                        nbMachines = st.split(",").length;
-                    }
-                    cpt++;
-                }
-            }
-            br.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return nbMachines;
-
-    }
-
     // récupérer noms des machines indiqués dans le fichier de configuration
     public static String[] recupnom(String path, Integer nbServers) {
         File file = new File(path);
@@ -116,6 +91,31 @@ public class Utils {
             intports[i] = Integer.parseInt(ports[i]);
         }
         return intports;
+
+    }
+
+    public static int recupnbmachines(String path) {
+        File file = new File(path);
+        int cpt = 0;
+        int nbMachines = 0;
+        BufferedReader br;
+        try {
+            br = new BufferedReader(new FileReader(file));
+            String st;
+            while ((st = br.readLine()) != null) {
+                if (!st.startsWith("#")) {
+                    if (cpt == 0) {
+                        nbMachines = st.split(",").length;
+                    }
+                    cpt++;
+                }
+            }
+            br.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return nbMachines;
 
     }
 
