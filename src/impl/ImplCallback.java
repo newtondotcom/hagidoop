@@ -1,24 +1,21 @@
 package impl;
 
 import interfaces.Callback;
+import ordo.CallBack;
 
 
 public class ImplCallback implements Callback {
 
-	private String adresseMain; // Adresse pour contacter le main et prevenir que l'on a fini
-    private int id; // Id du Callback, le worker saura sur quel fragment il travaille
-
-  	/* Constructor */
-	public ImplCallback(int _id, String _adresseMain) {
-		this.id = _id;
-		this.adresseMain = _adresseMain;
+	int nbTacheFinie;
+	
+	public ImplCallback(){
 	}
 	
-	public String getAdresseRetour(){
-		return this.adresseMain;
+	public void tacheFinie(){
+		nbTacheFinie++;
 	}
 
-	public int getID(){
-		return this.id;
+	public int getTachesFinies(){
+		return this.nbTacheFinie;
 	}
 }

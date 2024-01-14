@@ -3,7 +3,8 @@ import java.io.Serializable;
 
 
 public interface Callback extends Serializable{
-	public String getAdresseRetour();
 
-	public int getID();
+	public void tacheFinie();
+
+	public int getTachesFinies();
 }

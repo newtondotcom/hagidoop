@@ -36,7 +36,7 @@ public class WorkerImpl extends UnicastRemoteObject  implements Worker{
 			m.map(reader, writer);
 
 			// Utiliser Callback pour prévenir que le traitement est terminé
-			
+			cb.tacheFinie();
 			
 			// On ferme le reader et le writer
 			reader.close();
@@ -45,10 +45,6 @@ public class WorkerImpl extends UnicastRemoteObject  implements Worker{
 			e.printStackTrace();
 		}
   }
-
-
-
-	
 
 	public static void main (String args[]) {
 		
