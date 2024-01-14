@@ -35,13 +35,14 @@ public class HagiDoopClient {
   }
 
   private static Worker[] recupWorker() {
-    int nbMachines = config.Utils.recupnb(path);
+    int nbMachines = config.Utils.recupnbmachines(path);
     Worker[] listWorker = new Worker[nbMachines];
     String[] urlWorker = recupURL(nbMachines);
     // récupérer les références des objets Worker sur les machines
     try {
       for (int i = 0 ; i < nbMachines ; i++) {
         listWorker[i]=(Worker) Naming.lookup(urlWorker[i]);
+        System.out.println("Worker " + i + " récupéré");
       }
     } catch (Exception e) {
       e.printStackTrace();
@@ -89,9 +90,11 @@ public class HagiDoopClient {
         }
 
       // On récupère le nombre de machine 
-      int nbMachines = config.Utils.recupnb(path);
+      int nbMachines = config.Utils.recupnbmachines(path);
+      System.out.println("Nombre de machines : " + nbMachines);
       // On récupère les instance des worker sur les machines 
       Worker[] listWorker = recupWorker();
+      System.out.println("Récupération des workers terminée");
       // On créer le callback
       Callback cb = new ImplCallback();
 
@@ -122,7 +125,7 @@ public class HagiDoopClient {
 			HdfsClient.HdfsRead(localFSDestFname);
 			System.out.println("Lecture terminée");
 
-      ImplNetworkRW reader = new ImplNetworkRW(7000, localFSDestFname);
+      ImplNetworkRW reader = new ImplNetworkRW(7000, localFSDestFname, false);
       reader.openClient();
       FileReaderWriter writer = new ImplFileRW(0, "Resultat.txt", "w", 1);
 

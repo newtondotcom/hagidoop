@@ -1,8 +1,6 @@
 package impl;
 
 import interfaces.Callback;
-import ordo.CallBack;
-
 
 public class ImplCallback implements Callback {
 

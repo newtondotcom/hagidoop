@@ -2,12 +2,12 @@ package application;
 
 import java.util.HashMap;
 
-import daemon.JobLauncher;
-import interfaces.FileReaderWriter;
+import impl.ImplFileRW;
 import interfaces.KV;
 import interfaces.MapReduce;
 import interfaces.Reader;
 import interfaces.Writer;
+import impl.*;
 
 public class MyMapReduce implements MapReduce {
 	private static final long serialVersionUID = 1L;
@@ -23,6 +23,7 @@ public class MyMapReduce implements MapReduce {
 				if (hm.containsKey(tok)) hm.put(tok, hm.get(tok)+1);
 				else hm.put(tok, 1);
 			}
+			System.out.println("Map : " + kv.v);
 		}
 		for (String k : hm.keySet()) writer.write(new KV(k,hm.get(k).toString()));
 	}
@@ -30,13 +31,15 @@ public class MyMapReduce implements MapReduce {
 	public void reduce(Reader reader, Writer writer) {
 		HashMap<String,Integer> hm = new HashMap<String,Integer>();
 		KV kv;
+		System.out.println("Bite");
 		while ((kv = reader.read()) != null) {
 			if (hm.containsKey(kv.k)) hm.put(kv.k, hm.get(kv.k)+Integer.parseInt(kv.v));
 			else hm.put(kv.k, Integer.parseInt(kv.v));
 		}
+		System.out.println("Bite");
 		for (String k : hm.keySet()) writer.write(new KV(k,hm.get(k).toString()));
 	}
-
+/* 
 	public static void main(String args[]) {
 		try {
 			long t1 = System.currentTimeMillis();
@@ -48,4 +51,5 @@ public class MyMapReduce implements MapReduce {
 			e.printStackTrace();
 		}
 	}
+*/
 }

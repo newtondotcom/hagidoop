@@ -12,6 +12,8 @@ public class ImplFileRW implements FileReaderWriter{
   private transient BufferedReader br;
   private transient BufferedWriter bw;
 
+  private KV kv;
+
   // Nom du fichier sur HDFS
   private String fName;
   private String mode;
@@ -24,6 +26,7 @@ public class ImplFileRW implements FileReaderWriter{
 
   public void open(String _mode){
     try{
+      System.out.println("Ouverture du fichier " + this.fName + " en mode " + _mode);
         this.mode = _mode;
         if (_mode.equals("r")){
           this.br = new BufferedReader(new FileReader(this.fName));
@@ -73,18 +76,13 @@ public class ImplFileRW implements FileReaderWriter{
   }
 
   public KV read() {
-    KV kv = new KV();
+    this.kv = new KV("", "");
     try {
-      while (true) {
-        String l = br.readLine();
-        if (l == null) return null;
-        index += l.length();
-        String[] tokens = l.split(KV.SEPARATOR);
-        if (tokens.length != 2) continue;
-        kv.k = tokens[0];
-        kv.v = tokens[1];
-        return kv;
-      }
+      kv.k = String.valueOf(0);
+      kv.v = br.readLine();
+      if (kv.v == null) return null;
+      index += kv.v.length();
+      return kv;
     } catch (IOException e) {
       e.printStackTrace();
       return null;
