@@ -17,10 +17,10 @@ public class HdfsClient {
     private static String[] nomMachines;
     private static int nbServers;
     public static String path = "src/config/main.cfg";
-    private static final Integer taille_fragment = recuptaille(path);
+    private static Integer taille_fragment = recuptaille(path);
     private static final KV cst = new KV("hi","hello");
-    private static final String SOURCE_INPUT = System.getProperty("user.home")+"/nosave/hagidoop_data/in/";
-    private static final String SOURCE_OUTPUT = System.getProperty("user.home")+"/nosave/hagidoop_data/out/";
+    private static final String SOURCE_INPUT = "src/io/in/";
+    private static final String SOURCE_OUTPUT = "src/io/out/";
     private static PersistentStorage node;
 
     public static void main(String[] args) {
@@ -28,7 +28,7 @@ public class HdfsClient {
             if (args.length<2) {fctusage(); return;}
             node = new PersistentStorage();
             node.ListFragments();
-            nbServers = recupnb(path);
+            nbServers = recupnbmachines(path);
             numPorts = recupport(path,nbServers);
             nomMachines = recupnom(path,nbServers);
             int fmt = 0;
@@ -94,11 +94,16 @@ public class HdfsClient {
          try {
             ImplFileRW fichierLocal = new ImplFileRW((long) 0, SOURCE_INPUT+fname, "r", fmt);
         	long taille = fichierLocal.getFileLength();
-            System.out.println(String.valueOf(taille));
 
+            // Params with a fixed fragment size
         	int nbfragments = (int) (taille/taille_fragment);
             if (taille%taille_fragment != 0) { nbfragments ++;}
-            System.out.println(String.valueOf(nbfragments)+" fragment(s)");
+
+             //Params with a fixed number of fragments
+             //int nbfragments = 2;
+             //taille_fragment = Math.toIntExact(taille / 2);
+
+             System.out.println(String.valueOf(nbfragments)+" fragment(s)");
 
         	// Ajouter le nombre de fragments dans le fichier node.
         	node.addFragment(fname, nbfragments);
@@ -129,12 +134,8 @@ public class HdfsClient {
                         }
                     }
 
-                    //System.exit(0);
-
                     int t = i % nbServers;
-
                     Socket socket = new Socket(nomMachines[t], numPorts[t]);
-
                     String[] inter = fname.split("\\.");
                     String nom = inter[0];
                     String extension;
