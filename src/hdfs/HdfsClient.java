@@ -1,5 +1,6 @@
 package hdfs;
 
+import config.Project;
 import impl.ImplFileRW;
 import interfaces.KV;
 
@@ -16,7 +17,7 @@ public class HdfsClient {
     private static int[] numPorts;
     private static String[] nomMachines;
     private static int nbServers;
-    public static String path = "src/config/main.cfg";
+    public static String path = Project.config;
     private static Integer taille_fragment = recuptaille(path);
     private static final KV cst = new KV("hi","hello");
     private static final String SOURCE_INPUT = "src/io/in/";
@@ -135,6 +136,7 @@ public class HdfsClient {
                     }
 
                     int t = i % nbServers;
+                    System.out.println("Fragment "+i+" sent to "+nomMachines[t]+"on port "+numPorts[t]);
                     Socket socket = new Socket(nomMachines[t], numPorts[t]);
                     String[] inter = fname.split("\\.");
                     String nom = inter[0];

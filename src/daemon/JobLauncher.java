@@ -24,7 +24,7 @@ public class JobLauncher extends UnicastRemoteObject {
 	static Worker[] listeWorker;
 
 	// chemin pour le fichier de configuration
-  public static String pathConfig = "src/config/main.cfg";
+  public static String pathConfig = Project.config;
 	// Chemin d'accès vers les fragments
 	final static String path = "/tmp/data/";
 

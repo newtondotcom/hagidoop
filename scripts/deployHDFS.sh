@@ -5,7 +5,7 @@
 ###############################################################
 
 # Récupérer la 2e ligne du fichier de config (noms des machines)
-listepc=$(sed "2q;d" src/config/main.cfg)
+listepc=$(sed "2q;d" src/config/main_n7.cfg)
 
 # Découper la chaîne obtenue sur les délimiteurs ","
 # et la stocker dans un tableau
@@ -25,13 +25,15 @@ IFS=',' read -ra tabph <<< "$listeph"
 # Chemin d'accès vers le projet Hidoop
 chemin="Téléchargements/Hagidoop"
 
+index=0
 # Check if the bin directory exists
 #if ! ssh raugerea2@${tabpc[$index]} 'test -d /home/raugerea2/Téléchargements/Hagidoop/src/'; then
     ssh raugerea2@${tabpc[$index]} rm -rf ${chemin}/src/
     ssh raugerea2@${tabpc[$index]} rm -rf ${chemin}/bin/
     ssh raugerea2@${tabpc[$index]} mkdir -p ${chemin}/bin/
     scp -r src/ raugerea2@${tabpc[$index]}:/home/raugerea2/${chemin}/
-    ssh raugerea2@${tabpc[$index]} javac -d ${chemin}/bin ${chemin}/src/**/*.java  -Xlint
+    scp -r filesample.txt raugerea2@${tabpc[$index]}:/home/raugerea2/${chemin}/
+    ssh raugerea2@${tabpc[$index]} javac -d ${chemin}/bin ${chemin}/src/**/*.java
 #fi
 
 for index in ${!tabpc[*]}; do 
