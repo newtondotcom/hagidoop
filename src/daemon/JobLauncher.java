@@ -41,7 +41,8 @@ class MyThread extends Thread {
 		// On créer le reader et le writer que l'on donne au worker
 		System.out.println(fSrcName);
 		ImplFileRW reader = new ImplFileRW(0, fSrcName, "r", FMT_TXT);
-		FileReaderWriter writerFinal = new ImplFileRW(0, fSrcName.replace("txt", "kv"), "w", FMT_KV);
+		String fKVName = JobLauncher.pathKV + nom + "_" + i + ".kv";
+		FileReaderWriter writerFinal = new ImplFileRW(0, fKVName, "w", FMT_KV);
 		NetworkReaderWriter writer = new ImplNetworkRW(7001+i, "heidi");
 		System.out.println("1");
 		System.out.println("Lancement du runMap : " + (7001+i));
@@ -73,7 +74,8 @@ public class JobLauncher extends UnicastRemoteObject {
   	public static String pathConfig = Project.config;
 
 	// Chemin d'accès vers les fragments
-	final static String path = "temp/";
+	final static String path = "/tmp/data/";
+	final static String pathKV = "temp/";
 
 	// Nombre de tâche finie parmi les workers lancés
 	static int nbTacheFinie;
@@ -155,7 +157,7 @@ public class JobLauncher extends UnicastRemoteObject {
 		Locale locale = new Locale("fr", "FR");
 		ImplFileRW writer = new ImplFileRW(0, "Final.txt", "w", FMT_TXT);
 		for(int i = 0; i < nbfragments; i++) {
-			ImplFileRW reader = new ImplFileRW(0, path + filename + "_" + i + ".kv", "r", FMT_KV);
+			ImplFileRW reader = new ImplFileRW(0, pathKV + filename + "_" + i + ".kv", "r", FMT_KV);
 			KV kv;
 			System.out.println("FileReduce");
 			while ((kv = reader.readkv()) != null) {

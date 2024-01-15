@@ -21,6 +21,7 @@ public class ImplFileRW implements FileReaderWriter{
   public ImplFileRW(long _index, String _fName, String _mode, int format){
     this.index = _index;
     this.fName = _fName;
+    Boolean exists = new File(this.fName).exists();
     open(_mode);
   }
 

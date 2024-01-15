@@ -7,7 +7,7 @@ import java.util.Properties;
 
 public class Project {
     public static String PATH = "/home/raugerea2/Téléchargements/Hagidoop/";
-    public static String TEMP_PATH = "temp/";
+    public static String TEMP_PATH = "/tmp/data";
 
     public static String config = "src/config/main_n7.cfg";
 
