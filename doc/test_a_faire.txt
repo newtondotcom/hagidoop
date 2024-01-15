@@ -1,2 +1,1 @@
 test map sur 1,2,3 et 4 machines de n'n7 en meme temps puis graphe python
-test map reduce sur 1 machine avec et sans si possible
