@@ -41,7 +41,7 @@ class MyThread extends Thread {
 		System.out.println(fSrcName);
 		ImplFileRW reader = new ImplFileRW(0, fSrcName, "r", FMT_TXT);
 		FileReaderWriter writerFinal = new ImplFileRW(0, fSrcName.replace("txt", "kv"), "w", FMT_KV);
-		NetworkReaderWriter writer = new ImplNetworkRW(7001+i, "localhost");
+		NetworkReaderWriter writer = new ImplNetworkRW(7001+i, "solo");
 		System.out.println("1");
 		System.out.println("Lancement du runMap : " + (7001+i));
 		writer.openServer();
@@ -210,7 +210,6 @@ public class JobLauncher extends UnicastRemoteObject {
 			System.out.println(listWorker[0].ToString());
       System.out.println("Récupération des workers terminée");
       // On créer le callback
-      Callback cb = new ImplCallback();
 
       // On créer Le jobLauncher, celui qui va lancer le reduce sur chacune des machines
       JobLauncher jobLauncher = new JobLauncher(nbMachines, listWorker, cb);
