@@ -8,6 +8,7 @@ import java.rmi.server.UnicastRemoteObject;
 
 import interfaces.Callback;
 import interfaces.FileReaderWriter;
+import interfaces.KV;
 import interfaces.Map;
 import interfaces.NetworkReaderWriter;
 
@@ -45,10 +46,11 @@ public class WorkerImpl extends UnicastRemoteObject  implements Worker{
 
 			// Utiliser Callback pour prévenir que le traitement est terminé
 			cb.tacheFinie();
-			
+			System.out.println(cb.getTachesFinies());
 			// On ferme le reader et le writer
 			reader.close();
 			//writer.closeClient();
+			writer.write(new KV("EOF","0"));
 			System.out.println("Fermeture du worker");
 		} catch (Exception e){
 			e.printStackTrace();

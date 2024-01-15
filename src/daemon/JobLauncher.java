@@ -3,7 +3,6 @@ package daemon;
 import static interfaces.FileReaderWriter.FMT_TXT;
 
 import java.rmi.*;
-import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Arrays;
 
@@ -47,26 +46,30 @@ public class JobLauncher extends UnicastRemoteObject {
     String nom = inter[0];
 		String extension = inter[1];
 
-    int nbfragments = 1;//node.getNbFragments(fname);
+    int nbfragments = 2;//node.getNbFragments(fname);
 
 		try{
+			// On créer les reader et les writer pour chaque fragment
+			FileReaderWriter writerFinal = new ImplFileRW(0, "Final.txt", "w", 1);
 				for (int i = 0 ; i < nbfragments; i++) {
 					// On donne le nom au fichier HDFS
 					String fSrcName = path + nom + "_" + i + "." + extension;
-					String fDestname = fSrcName + "-res";
 					// On créer le reader et le writer que l'on donne au worker
 					System.out.println(fSrcName);
-					ImplFileRW reader = new ImplFileRW(0, "filesample_0.txt", "r", FMT_TXT);
-					FileReaderWriter writerFinal = new ImplFileRW(0, "Final.txt", "w", 1);
-					NetworkReaderWriter writer = new ImplNetworkRW(7001+i, "localhost", false);
-					NetworkReaderWriter server = new ImplNetworkRW(7001+i, "localhost", true);
+					ImplFileRW reader = new ImplFileRW(0, fSrcName, "r", FMT_TXT);
+					NetworkReaderWriter writer = new ImplNetworkRW(7001+i, "localhost");
 					System.out.println("1");
 					System.out.println("Lancement du runMap : " + (7001+i));
+					writer.openServer();
 					listeWorker[i%nbWorker].runMap(mr, reader, writer, cb);
-					mr.reduce(server, writerFinal);
-					System.out.println("Fin du reduce");
 					System.out.println("Fin du runMap" + (7001+i));
+					NetworkReaderWriter r = writer.accept();
+					r.openClient();
+					mr.reduce(r, writerFinal);
+					System.out.println("Fin du reduce");
 				}
+
+
 		} catch(Exception e){
 			e.printStackTrace();
 		}
@@ -169,32 +172,6 @@ public class JobLauncher extends UnicastRemoteObject {
       jobLauncher.startJob(mr, format, hdfsFilename);
       System.out.println("EndJob");
 
-      // On attend que tous les workers aient fini leur traitement
-      System.out.println("Début attente Machine");
-      while (cb.getTachesFinies() != nbMachines) {
-        try {
-          Thread.sleep(1000);
-        } catch (InterruptedException e) {
-          e.printStackTrace();
-        }
-      }
-      System.out.println("Fin attente Machine");
-
-      
-      // récupérer le fichier traité via HDFS
-			HdfsClient.HdfsRead(localFSDestFname);
-			System.out.println("Lecture terminée");
-
-      ImplNetworkRW reader = new ImplNetworkRW(7000, localFSDestFname, false);
-      reader.openClient();
-      FileReaderWriter writer = new ImplFileRW(0, "Resultat.txt", "w", 1);
-
-      // On fait le reduce
-      System.out.println("Début du reduce");
-			mr.reduce(reader, writer);
-			System.out.println("Fin du reduce");
-      reader.closeClient();
-			writer.close();
 
     } catch (Exception e) {
       e.printStackTrace();

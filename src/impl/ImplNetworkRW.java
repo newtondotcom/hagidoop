@@ -18,26 +18,46 @@ public class ImplNetworkRW implements NetworkReaderWriter{
 
   public int port;
 
-  // Stream
-  OutputStream os;
-  ObjectOutputStream oos;
-  InputStream is;
-  ObjectInputStream ois;
+  public String nomMachienInitiale;
 
-  public ServerSocket ssck;
-  public Socket s;
+  // Stream
+  transient OutputStream os;
+  transient ObjectOutputStream oos;
+  transient InputStream is;
+  transient ObjectInputStream ois;
+
+  public transient ServerSocket ssck;
+  public transient Socket s;
 
   public String host;
 
   /* Constructor */
-  public ImplNetworkRW(int _port, String _host, boolean _server){
+  public ImplNetworkRW(int _port, String _host){
     this.port = _port;
     this.host = _host;
-    if (_server){
-      openServer();
-      accept();
-      System.out.println("5");
-    } 
+  }
+
+  public ImplNetworkRW(int _port, String _host, OutputStream _os, InputStream _is, ObjectOutputStream _oos, ObjectInputStream _ois){
+    this.port = _port;
+    this.host = _host;
+    this.os = _os;
+    this.is = _is;
+    this.ois = _ois;
+    this.oos = _oos;
+  }
+
+  public ImplNetworkRW(int port, String _host, Socket _s){
+    this.port = port;
+    this.host = _host;
+    this.s = _s;
+    try {
+      this.os = s.getOutputStream();
+      this.is = s.getInputStream();
+      this.oos = new ObjectOutputStream(os);
+      this.ois = new ObjectInputStream(is);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   public void openServer(){
@@ -53,6 +73,9 @@ public class ImplNetworkRW implements NetworkReaderWriter{
     try{
       System.out.println(this.host + this.port);
       Socket ss = new Socket(this.host, this.port);
+      this.is = ss.getInputStream();
+      this.os = ss.getOutputStream();
+      this.oos = new ObjectOutputStream(os);  
       System.out.println("Client open sur le port " + this.port);
       this.s = ss;
     } catch (Exception e){
@@ -65,9 +88,8 @@ public class ImplNetworkRW implements NetworkReaderWriter{
       this.is = s.getInputStream();
       this.ois = new ObjectInputStream(is);
       this.os = s.getOutputStream();
-      this.oos = new ObjectOutputStream(os);
       System.out.println("Tous les flux sont ouverts");
-      return new ImplNetworkRW(this.port, this.host, true);
+      return new ImplNetworkRW(this.port, this.host, this.os, this.is, this.oos, this.ois);
     } catch (Exception e){
       e.printStackTrace();
     }
@@ -92,7 +114,6 @@ public class ImplNetworkRW implements NetworkReaderWriter{
   public void write(KV _record){
     System.out.println("Write" + _record);
     try {
-      this.oos = new ObjectOutputStream(os);
       oos.writeObject(_record);
     } catch (IOException e) {
       e.printStackTrace();
@@ -101,10 +122,16 @@ public class ImplNetworkRW implements NetworkReaderWriter{
   @Override
   public KV read() {
     try {
-        this.ois = new ObjectInputStream(is);
+        System.out.println("Read");
         Object object = ois.readObject();
+        System.out.println("Read" + object);
         if (object instanceof KV) {
-            return (KV) object;
+            KV kv = (KV) object;
+            if (kv.k.equals("EOF")) {
+                return null;
+            } else {
+                return kv;
+            }
         } else {
             System.err.println("Error: Unexpected object type read from the stream.");
             return null;

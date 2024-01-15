@@ -10,10 +10,12 @@ public class ImplCallback implements Callback {
 	}
 	
 	public void tacheFinie(){
+		System.out.println("Tache finie" + nbTacheFinie);
 		nbTacheFinie++;
 	}
 
 	public int getTachesFinies(){
+		System.out.println("Tache" + nbTacheFinie);
 		return this.nbTacheFinie;
 	}
 }

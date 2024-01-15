@@ -125,7 +125,7 @@ public class HagiDoopClient {
 			HdfsClient.HdfsRead(localFSDestFname);
 			System.out.println("Lecture terminée");
 
-      ImplNetworkRW reader = new ImplNetworkRW(7000, localFSDestFname, false);
+      ImplNetworkRW reader = new ImplNetworkRW(7000, localFSDestFname);
       reader.openClient();
       FileReaderWriter writer = new ImplFileRW(0, "Resultat.txt", "w", 1);
 
