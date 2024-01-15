@@ -14,6 +14,49 @@ import impl.*;
 import hdfs.HdfsClient;
 import config.*;
 
+class MyThread extends Thread {
+	String nom;
+	int i;
+	String extension;	
+	MapReduce mr;
+	Worker[] listeWorker;
+	Callback cb;
+	int nbWorker;
+
+	public MyThread(String _nom, int _i, String _extension, MapReduce _mr, Worker[] _listeWorker, Callback _cb, int _nbWorker) {
+		nom = _nom;
+		i = _i;
+		extension = _extension;
+		mr = _mr;
+		listeWorker = _listeWorker;
+		cb = _cb;
+		nbWorker = _nbWorker;
+	}
+	public void run() {
+		try{
+		System.out.println("MyThread running");
+		// On donne le nom au fichier HDFS
+		String fSrcName = JobLauncher.path + nom + "_" + i + "." + extension;
+		// On créer le reader et le writer que l'on donne au worker
+		System.out.println(fSrcName);
+		ImplFileRW reader = new ImplFileRW(0, fSrcName, "r", FMT_TXT);
+		FileReaderWriter writerFinal = new ImplFileRW(0, fSrcName.replace("txt", "kv"), "w", FMT_KV);
+		NetworkReaderWriter writer = new ImplNetworkRW(7001+i, "localhost");
+		System.out.println("1");
+		System.out.println("Lancement du runMap : " + (7001+i));
+		writer.openServer();
+		listeWorker[i%nbWorker].runMap(mr, reader, writer, cb);
+		System.out.println("Fin du runMap" + (7001+i));
+		NetworkReaderWriter r = writer.accept();
+		r.openClient();
+		mr.reduce(r, writerFinal);
+		System.out.println("Fin du reduce");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+}
+
 public class JobLauncher extends UnicastRemoteObject {
 	// emplacement et port du service
 
@@ -48,28 +91,19 @@ public class JobLauncher extends UnicastRemoteObject {
     String nom = inter[0];
 		String extension = inter[1];
 
-    int nbfragments = 2;//node.getNbFragments(fname);
+    int nbfragments = config.Utils.recupnbmachines(pathConfig);
 
 		try{
 			// On créer les reader et les writer pour chaque fragment
-				for (int i = 0 ; i < nbfragments; i++) {
-					// On donne le nom au fichier HDFS
-					String fSrcName = path + nom + "_" + i + "." + extension;
-					// On créer le reader et le writer que l'on donne au worker
-					System.out.println(fSrcName);
-					ImplFileRW reader = new ImplFileRW(0, fSrcName, "r", FMT_TXT);
-					FileReaderWriter writerFinal = new ImplFileRW(0, fSrcName.replace("txt", "kv"), "w", FMT_KV);
-					NetworkReaderWriter writer = new ImplNetworkRW(7001+i, "localhost");
-					System.out.println("1");
-					System.out.println("Lancement du runMap : " + (7001+i));
-					writer.openServer();
-					listeWorker[i%nbWorker].runMap(mr, reader, writer, cb);
-					System.out.println("Fin du runMap" + (7001+i));
-					NetworkReaderWriter r = writer.accept();
-					r.openClient();
-					mr.reduce(r, writerFinal);
-					System.out.println("Fin du reduce");
-				}
+			MyThread[] threadsList = new MyThread[nbfragments];
+			for (int i = 0 ; i < nbfragments; i++) {
+				threadsList[i] = new MyThread(nom, i, extension, mr, listeWorker, cb, nbWorker);
+				threadsList[i].start();
+			}
+			for (int i = 0; i < nbfragments; i++) {
+				threadsList[i].join();
+				System.out.println("Thread " + i + " terminé");
+		}
 			FileReduce(nbfragments, nom);
 		} catch(Exception e){
 			e.printStackTrace();
