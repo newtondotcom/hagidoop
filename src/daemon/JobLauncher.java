@@ -4,14 +4,12 @@ import static interfaces.FileReaderWriter.FMT_TXT;
 
 import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.LinkedList;
 
 import application.MyMapReduce;
 import interfaces.*;
 import impl.*;
-import hdfs.HdfsClient;
 import config.*;
 
 public class JobLauncher extends UnicastRemoteObject {
@@ -53,6 +51,7 @@ public class JobLauncher extends UnicastRemoteObject {
 		try{
 			// On créer les reader et les writer pour chaque fragment
 			FileReaderWriter writerFinal = new ImplFileRW(0, "Final.txt", "w", 1);
+            LinkedList<KV> dynamicList = new LinkedList<KV>();
             for (int i = 0 ; i < nbfragments; i++) {
 					// On donne le nom au fichier HDFS
 					String fSrcName = path + nom + "_" + i + "." + extension;
@@ -67,9 +66,16 @@ public class JobLauncher extends UnicastRemoteObject {
 					System.out.println("Fin du runMap" + (7001+i));
 					NetworkReaderWriter r = writer.accept();
 					r.openClient();
-					mr.reduce(r, writerFinal);
-					System.out.println("Fin du reduce");
-				}
+                    while (r.read() != null) {
+                        dynamicList.add(r.read());
+                    }
+            }
+            ImplFileRW file = new ImplFileRW(0, "tmp/data/Final.txt", "w", 1);
+            for (KV kv : dynamicList) {
+                file.write(kv);
+            }
+            mr.reduce(file, writerFinal);
+            System.out.println("Fin du reduce");
 
 
 		} catch(Exception e){
