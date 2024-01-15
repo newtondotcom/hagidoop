@@ -94,6 +94,36 @@ public class Utils {
 
     }
 
+    public static int[] recuprmi(String path, Integer nbServers) {
+        File file = new File(path);
+        int cpt = 0;
+        int nbMachines = nbServers;
+        String[] ports = new String[nbMachines];
+        BufferedReader br;
+        try {
+            br = new BufferedReader(new FileReader(file));
+            String st;
+            while ((st = br.readLine()) != null) {
+                if (!st.startsWith("#")) {
+                    if (cpt == 2) {
+                        ports = st.split(",");
+                    }
+                    cpt++;
+                }
+            }
+            br.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        int[] intports = new int [nbMachines];
+        for (int i=0; i<nbMachines; i++){
+            intports[i] = Integer.parseInt(ports[i]);
+        }
+        return intports;
+
+    }
+
     public static int recupnbmachines(String path) {
         File file = new File(path);
         int cpt = 0;
