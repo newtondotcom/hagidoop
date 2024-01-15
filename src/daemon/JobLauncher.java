@@ -71,7 +71,7 @@ public class JobLauncher extends UnicastRemoteObject {
 	// chemin pour le fichier de configuration
   public static String pathConfig = Project.config;
 	// Chemin d'accès vers les fragments
-	final static String path = "/tmp/data/";
+	final static String path = Project.TEMP_PATH;
 
 	// Nombre de tâche finie parmi les workers lancés
 	static int nbTacheFinie;
@@ -209,8 +209,6 @@ public class JobLauncher extends UnicastRemoteObject {
       Worker[] listWorker = recupWorker();
 			System.out.println(listWorker[0].ToString());
       System.out.println("Récupération des workers terminée");
-      // On créer le callback
-      Callback cb = new ImplCallback();
 
       // On créer Le jobLauncher, celui qui va lancer le reduce sur chacune des machines
       JobLauncher jobLauncher = new JobLauncher(nbMachines, listWorker, cb);

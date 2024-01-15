@@ -7,9 +7,9 @@ import java.util.Properties;
 
 public class Project {
     public static String PATH = "/home/raugerea2/Téléchargements/Hagidoop/";
-    public static String TEMP_PATH = "/tmp/";
+    public static String TEMP_PATH = "temp/";
 
-    public static String config = "main_n7.cfg";
+    public static String config = "src/config/main_n7.cfg";
 
     public static void main(String[] args) {
         Map<String, Integer> hash = new HashMap<>();
