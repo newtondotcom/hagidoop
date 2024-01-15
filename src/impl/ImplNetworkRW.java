@@ -63,7 +63,6 @@ public class ImplNetworkRW implements NetworkReaderWriter{
   public void openServer(){
     try{
       ServerSocket ssck = new ServerSocket(this.port);
-      System.out.println("Server open sur le port " + this.port);
       this.ssck = ssck;
     } catch (Exception e){
       e.printStackTrace();
@@ -76,7 +75,6 @@ public class ImplNetworkRW implements NetworkReaderWriter{
       this.is = ss.getInputStream();
       this.os = ss.getOutputStream();
       this.oos = new ObjectOutputStream(os);  
-      System.out.println("Client open sur le port " + this.port);
       this.s = ss;
     } catch (Exception e){
       e.printStackTrace();
@@ -88,7 +86,6 @@ public class ImplNetworkRW implements NetworkReaderWriter{
       this.is = s.getInputStream();
       this.ois = new ObjectInputStream(is);
       this.os = s.getOutputStream();
-      System.out.println("Tous les flux sont ouverts");
       return new ImplNetworkRW(this.port, this.host, this.os, this.is, this.oos, this.ois);
     } catch (Exception e){
       e.printStackTrace();
@@ -112,7 +109,6 @@ public class ImplNetworkRW implements NetworkReaderWriter{
   
   @Override
   public void write(KV _record){
-    System.out.println("Write" + _record);
     try {
       oos.writeObject(_record);
     } catch (IOException e) {
