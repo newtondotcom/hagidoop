@@ -2,12 +2,10 @@ package application;
 
 import java.util.HashMap;
 
-import impl.ImplFileRW;
 import interfaces.KV;
 import interfaces.MapReduce;
 import interfaces.Reader;
 import interfaces.Writer;
-import impl.*;
 
 public class MyMapReduce implements MapReduce {
 	private static final long serialVersionUID = 1L;

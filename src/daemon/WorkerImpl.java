@@ -6,7 +6,6 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 
-import interfaces.Callback;
 import interfaces.FileReaderWriter;
 import interfaces.KV;
 import interfaces.Map;
@@ -16,37 +15,28 @@ public class WorkerImpl extends UnicastRemoteObject  implements Worker{
 
   // Registre du service daemon
   static Registry registre;
-	//
-	static String host = "localhost";
+	// Host du worker
+	static String host;
 
-	/* 
-	 * Constructeur
-	*/
+
   public WorkerImpl() throws RemoteException{
   }
-
-	public String ToString() throws RemoteException{
-		return "WorkerImpl : " + host + registre.toString();
-	}
 
   public void runMap (Map m, FileReaderWriter reader, NetworkReaderWriter writer) throws RemoteException{
 
 		try{
-			// On ouvre la connexion du reader et du writer
-			System.out.println("Ouverture du reader" + reader.getFname());
+			// On ouvre le fichier
 			reader.open("r");
-			System.out.println("Ouverture du client writer");
+			// On ouvre le client 
 			writer.openClient();
-			System.out.println("Lancement du worker");
 			
 			// Lancer la fonction map sur le fragment de fichier
-			System.out.println("Lancement de la fonction map");
 			m.map(reader, writer);
-			System.out.println("Fin de la fonction map");
 
-			// On ferme le reader et le writer
+			// On ferme le fichier
 			reader.close();
-			//writer.closeClient();
+
+			// On ecrit un KV pour définir la fin du fichier
 			writer.write(new KV("EOF","0"));
 			System.out.println("Fermeture du worker");
 		} catch (Exception e){
@@ -59,16 +49,15 @@ public class WorkerImpl extends UnicastRemoteObject  implements Worker{
 		// vérifier le bon usage du daemon
 		try {
 			if (args.length < 1) {
-				System.out.println("DaemonImpl port non donnée");
+				System.err.println("DaemonImpl port non donnée");
 				System.exit(1);
 			}
 			
+			// On récupère le port avec l'argument
 			int port = Integer.parseInt(args[0]);
 			host = "localhost";
-			System.out.println(host + ":" + port);
 			
-			// Création du serveur de noms sur le port indiqué
-			System.out.println("Création du registre sur le port " + port);
+			// Création du registry sur le port donnée
 			try {
 				registre = LocateRegistry.createRegistry(port);
 			} catch (Exception e) {
@@ -76,10 +65,9 @@ public class WorkerImpl extends UnicastRemoteObject  implements Worker{
 			}
 			
 			// Création de l'URL du service
-			System.out.println("Création de l'URL du service");
 			String url = "//" + host + ":" + port + "/Worker";
 			
-			// Inscription auprès du registre
+			// Inscription auprès du registre et envoie du worker
 			Naming.bind(url, new WorkerImpl());
 			System.out.println("Inscription de l'objet avec l'url : " + url);
 			
