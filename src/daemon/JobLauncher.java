@@ -63,6 +63,7 @@ public class JobLauncher extends UnicastRemoteObject {
 					System.out.println("Lancement du runMap : " + (7001+i));
 					writer.openServer();
 					listeWorker[i%nbWorker].runMap(mr, reader, writer, cb);
+                    writer.write(new KV("EOF","EOF"));
 					System.out.println("Fin du runMap" + (7001+i));
 					NetworkReaderWriter r = writer.accept();
 					r.openClient();
