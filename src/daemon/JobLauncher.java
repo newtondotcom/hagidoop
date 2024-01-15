@@ -7,6 +7,7 @@ import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Locale;
 
 import application.MyMapReduce;
 import interfaces.*;
@@ -41,11 +42,11 @@ class MyThread extends Thread {
 		System.out.println(fSrcName);
 		ImplFileRW reader = new ImplFileRW(0, fSrcName, "r", FMT_TXT);
 		FileReaderWriter writerFinal = new ImplFileRW(0, fSrcName.replace("txt", "kv"), "w", FMT_KV);
-		NetworkReaderWriter writer = new ImplNetworkRW(7001+i, "solo");
+		NetworkReaderWriter writer = new ImplNetworkRW(7001+i, "heidi");
 		System.out.println("1");
 		System.out.println("Lancement du runMap : " + (7001+i));
 		writer.openServer();
-		listeWorker[i%nbWorker].runMap(mr, reader, writer, cb);
+		listeWorker[i%nbWorker].runMap(mr, reader, writer);
 		System.out.println("Fin du runMap" + (7001+i));
 		NetworkReaderWriter r = writer.accept();
 		r.openClient();
@@ -69,9 +70,10 @@ public class JobLauncher extends UnicastRemoteObject {
 	static Worker[] listeWorker;
 
 	// chemin pour le fichier de configuration
-  public static String pathConfig = Project.config;
+  	public static String pathConfig = Project.config;
+
 	// Chemin d'accès vers les fragments
-	final static String path = "/tmp/data/";
+	final static String path = "temp/";
 
 	// Nombre de tâche finie parmi les workers lancés
 	static int nbTacheFinie;
@@ -88,10 +90,10 @@ public class JobLauncher extends UnicastRemoteObject {
 
 	public static void startJob (MapReduce mr, int format, String fname) throws RemoteException{
 		String[] inter = fname.split("\\.");
-    String nom = inter[0];
+    	String nom = inter[0];
 		String extension = inter[1];
 
-    int nbfragments = config.Utils.recupnbmachines(pathConfig);
+    	int nbfragments = config.Utils.recupnbmachines(pathConfig);
 
 		try{
 			// On créer les reader et les writer pour chaque fragment
@@ -150,14 +152,15 @@ public class JobLauncher extends UnicastRemoteObject {
 
 	private static void FileReduce(int nbfragments, String filename) {
 		HashMap<String,Integer> hm = new HashMap<String,Integer>();
+		Locale locale = new Locale("fr", "FR");
 		ImplFileRW writer = new ImplFileRW(0, "Final.txt", "w", FMT_TXT);
 		for(int i = 0; i < nbfragments; i++) {
 			ImplFileRW reader = new ImplFileRW(0, path + filename + "_" + i + ".kv", "r", FMT_KV);
 			KV kv;
 			System.out.println("FileReduce");
 			while ((kv = reader.readkv()) != null) {
-				kv.k = kv.k.toLowerCase();
-				if (hm.containsKey(kv.k)) {System.out.println(kv.v); hm.put(kv.k, hm.get(kv.k)+Integer.parseInt(kv.v));}
+				kv.k = kv.k.toLowerCase(locale);
+				if (hm.containsKey(kv.k)) {hm.put(kv.k, hm.get(kv.k)+Integer.parseInt(kv.v));}
 				else hm.put(kv.k, Integer.parseInt(kv.v));
 			}
 		}

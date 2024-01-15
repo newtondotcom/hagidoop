@@ -122,9 +122,7 @@ public class ImplNetworkRW implements NetworkReaderWriter{
   @Override
   public KV read() {
     try {
-        System.out.println("Read");
         Object object = ois.readObject();
-        System.out.println("Read" + object);
         if (object instanceof KV) {
             KV kv = (KV) object;
             if (kv.k.equals("EOF")) {

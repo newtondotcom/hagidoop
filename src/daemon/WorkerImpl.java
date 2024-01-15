@@ -29,7 +29,7 @@ public class WorkerImpl extends UnicastRemoteObject  implements Worker{
 		return "WorkerImpl : " + host + registre.toString();
 	}
 
-  public void runMap (Map m, FileReaderWriter reader, NetworkReaderWriter writer, Callback cb) throws RemoteException{
+  public void runMap (Map m, FileReaderWriter reader, NetworkReaderWriter writer) throws RemoteException{
 
 		try{
 			// On ouvre la connexion du reader et du writer
@@ -44,9 +44,6 @@ public class WorkerImpl extends UnicastRemoteObject  implements Worker{
 			m.map(reader, writer);
 			System.out.println("Fin de la fonction map");
 
-			// Utiliser Callback pour prévenir que le traitement est terminé
-			cb.tacheFinie();
-			System.out.println(cb.getTachesFinies());
 			// On ferme le reader et le writer
 			reader.close();
 			//writer.closeClient();
