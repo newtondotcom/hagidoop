@@ -117,7 +117,7 @@ public class JobLauncher extends UnicastRemoteObject {
 
     // On récupère le ports et le noms avec la classe utils
     noms = config.Utils.recupnom(pathConfig, nbMachines);
-    ports = config.Utils.recupport(pathConfig, nbMachines);
+    ports = config.Utils.recuprmi(pathConfig, nbMachines);
 
     // On créer les urls pour récupérer les instance de worker
     // On vérifie que l'on a assez d'infos
