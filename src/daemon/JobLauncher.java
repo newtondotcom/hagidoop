@@ -4,7 +4,9 @@ import static interfaces.FileReaderWriter.FMT_TXT;
 
 import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 
 import application.MyMapReduce;
 import interfaces.*;
@@ -41,7 +43,7 @@ public class JobLauncher extends UnicastRemoteObject {
 		cb = _cb;
 	}
 
-	public static void startJob (MapReduce mr, int format, String fname) throws RemoteException{
+	public static <List> void startJob (MapReduce mr, int format, String fname) throws RemoteException{
 		String[] inter = fname.split("\\.");
     String nom = inter[0];
 		String extension = inter[1];
@@ -51,7 +53,7 @@ public class JobLauncher extends UnicastRemoteObject {
 		try{
 			// On créer les reader et les writer pour chaque fragment
 			FileReaderWriter writerFinal = new ImplFileRW(0, "Final.txt", "w", 1);
-				for (int i = 0 ; i < nbfragments; i++) {
+            for (int i = 0 ; i < nbfragments; i++) {
 					// On donne le nom au fichier HDFS
 					String fSrcName = path + nom + "_" + i + "." + extension;
 					// On créer le reader et le writer que l'on donne au worker
