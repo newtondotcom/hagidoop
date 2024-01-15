@@ -101,6 +101,26 @@ public class ImplFileRW implements FileReaderWriter{
     }
   }
 
+  public KV readkv(){
+    this.kv = new KV("", "");
+    try {
+      while (true) {
+          String l = br.readLine();
+          if (l == null) return null;
+          index += l.length();
+          String[] tokens = l.split(KV.SEPARATOR);
+          if (tokens.length != 2) continue;
+          this.kv.k = tokens[0];
+          this.kv.v = tokens[1];
+          return kv;
+      }
+  } catch (IOException e) {
+      e.printStackTrace();
+      return null;
+  }
+
+  }
+
   
   public long getIndex(){
     return this.index;

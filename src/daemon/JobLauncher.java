@@ -1,15 +1,17 @@
 package daemon;
 
+import static interfaces.FileReaderWriter.FMT_KV;
 import static interfaces.FileReaderWriter.FMT_TXT;
 
 import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.HashMap;
 
 import application.MyMapReduce;
 import interfaces.*;
 import impl.*;
+import hdfs.HdfsClient;
 import config.*;
 
 public class JobLauncher extends UnicastRemoteObject {
@@ -41,7 +43,7 @@ public class JobLauncher extends UnicastRemoteObject {
 		cb = _cb;
 	}
 
-	public static <List> void startJob (MapReduce mr, int format, String fname) throws RemoteException{
+	public static void startJob (MapReduce mr, int format, String fname) throws RemoteException{
 		String[] inter = fname.split("\\.");
     String nom = inter[0];
 		String extension = inter[1];
@@ -50,35 +52,25 @@ public class JobLauncher extends UnicastRemoteObject {
 
 		try{
 			// On créer les reader et les writer pour chaque fragment
-			FileReaderWriter writerFinal = new ImplFileRW(0, "Final.txt", "w", 1);
-            LinkedList<KV> dynamicList = new LinkedList<KV>();
-            for (int i = 0 ; i < nbfragments; i++) {
+				for (int i = 0 ; i < nbfragments; i++) {
 					// On donne le nom au fichier HDFS
 					String fSrcName = path + nom + "_" + i + "." + extension;
 					// On créer le reader et le writer que l'on donne au worker
 					System.out.println(fSrcName);
 					ImplFileRW reader = new ImplFileRW(0, fSrcName, "r", FMT_TXT);
+					FileReaderWriter writerFinal = new ImplFileRW(0, fSrcName.replace("txt", "kv"), "w", FMT_KV);
 					NetworkReaderWriter writer = new ImplNetworkRW(7001+i, "localhost");
 					System.out.println("1");
 					System.out.println("Lancement du runMap : " + (7001+i));
 					writer.openServer();
 					listeWorker[i%nbWorker].runMap(mr, reader, writer, cb);
-                    writer.write(new KV("EOF","EOF"));
 					System.out.println("Fin du runMap" + (7001+i));
 					NetworkReaderWriter r = writer.accept();
 					r.openClient();
-                    while (r.read() != null) {
-                        dynamicList.add(r.read());
-                    }
-            }
-            ImplFileRW file = new ImplFileRW(0, "tmp/data/Final.txt", "w", 1);
-            for (KV kv : dynamicList) {
-                file.write(kv);
-            }
-            mr.reduce(file, writerFinal);
-            System.out.println("Fin du reduce");
-
-
+					mr.reduce(r, writerFinal);
+					System.out.println("Fin du reduce");
+				}
+			FileReduce(nbfragments, nom);
 		} catch(Exception e){
 			e.printStackTrace();
 		}
@@ -121,6 +113,22 @@ public class JobLauncher extends UnicastRemoteObject {
     }
     return listWorker;
   }
+
+	private static void FileReduce(int nbfragments, String filename) {
+		HashMap<String,Integer> hm = new HashMap<String,Integer>();
+		ImplFileRW writer = new ImplFileRW(0, "Final.txt", "w", FMT_TXT);
+		for(int i = 0; i < nbfragments; i++) {
+			ImplFileRW reader = new ImplFileRW(0, path + filename + "_" + i + ".kv", "r", FMT_KV);
+			KV kv;
+			System.out.println("FileReduce");
+			while ((kv = reader.readkv()) != null) {
+				kv.k = kv.k.toLowerCase();
+				if (hm.containsKey(kv.k)) {System.out.println(kv.v); hm.put(kv.k, hm.get(kv.k)+Integer.parseInt(kv.v));}
+				else hm.put(kv.k, Integer.parseInt(kv.v));
+			}
+		}
+		for (String k : hm.keySet()) writer.write(new KV(k,hm.get(k).toString()));
+	}
 
   public static void main(String[] args) throws RemoteException{
     try{
