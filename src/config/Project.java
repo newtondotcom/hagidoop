@@ -9,12 +9,12 @@ public class Project {
     public static String PATH = "/home/raugerea2/Téléchargements/Hagidoop/";
     public static String TEMP_PATH = "/tmp/";
 
-    public static String nameNode = "main.cfg";
+    public static String config = "main_n7.cfg";
 
     public static void main(String[] args) {
         Map<String, Integer> hash = new HashMap<>();
         try {
-            FileOutputStream fichier = new FileOutputStream(nameNode);
+            FileOutputStream fichier = new FileOutputStream(config);
             ObjectOutputStream objet = new ObjectOutputStream(fichier);
             objet.writeObject(hash);
             objet.close();
