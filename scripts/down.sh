@@ -1,12 +1,12 @@
 #!/bin/bash
 
-listepc=$(sed "2q;d" src/config/main_n7.cfg)
+listepc=$(sed "1q;d" src/config/main.cfg)
 IFS=',' read -ra tabpc <<< "$listepc"
 
 for pc in "${tabpc[@]}" 
 do
 	echo "Suppression des fragments sur $pc"
-	#ssh raugerea2@$pc "rm -rf /tmp/data"
+	ssh raugerea2@$pc "rm -rf /tmp/data"
 	echo "Arrêt du démon Hagidoop sur $pc"
 	ssh raugerea2@$pc "kill \$(jps | grep WorkerImpl | awk '{print \$1}')"
 	echo "Arrêt du démon HdfsServer sur $pc"
