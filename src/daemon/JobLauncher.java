@@ -21,14 +21,15 @@ class MyThread extends Thread {
 	interfaces.MapReduce mr;
 	Worker[] listeWorker;
 	int nbWorker;
-	String mainMachineName = "ader";
+	String mainMachineName = "succube";
 
-	public MyThread(String _nom, int _i, String _extension, interfaces.MapReduce _mr, Worker[] _listeWorker) {
+	public MyThread(String _nom, int _i, String _extension, interfaces.MapReduce _mr, int _nbWorker, Worker[] _listeWorker) {
 		nom = _nom;
 		i = _i;
 		extension = _extension;
 		mr = _mr;
 		listeWorker = _listeWorker;
+		nbWorker = _nbWorker;
 	}
 	public void run() {
 		try{
@@ -98,7 +99,7 @@ public class JobLauncher extends UnicastRemoteObject {
 			MyThread[] threadsList = new MyThread[nbfragments];
 			for (int i = 0 ; i < nbfragments; i++) {
 				// On lance les différents Thread sur toutes les machines
-				threadsList[i] = new MyThread(nom, i, extension, mr, listeWorker);
+				threadsList[i] = new MyThread(nom, i, extension, mr, nbMachines, listeWorker);
 				threadsList[i].start();
 			}
 			for (int i = 0; i < nbfragments; i++) {

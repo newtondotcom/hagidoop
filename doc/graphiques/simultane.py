@@ -7,6 +7,7 @@ times = [10, 7, 5, 3, 2]
 
 times2 = [5.537, 9.18, 17.118]
 tailleFichier = [2.7, 5.5, 11]
+
 # Graphique
 fig, ax = plt.subplots()
 ax.set_xlabel("Nombres de machines")
