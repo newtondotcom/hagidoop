@@ -9,16 +9,12 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import javax.swing.text.StyledEditorKit;
-
 import interfaces.KV;
 import interfaces.NetworkReaderWriter;
 
 public class ImplNetworkRW implements NetworkReaderWriter{
 
   public int port;
-
-  public String nomMachienInitiale;
 
   // Stream
   transient OutputStream os;
@@ -127,7 +123,7 @@ public class ImplNetworkRW implements NetworkReaderWriter{
                 return kv;
             }
         } else {
-            System.err.println("Error: Unexpected object type read from the stream.");
+            System.err.println("Object non reconnu");
             return null;
         }
     } catch (EOFException e) {

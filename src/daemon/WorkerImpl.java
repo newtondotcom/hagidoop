@@ -46,7 +46,7 @@ public class WorkerImpl extends UnicastRemoteObject  implements Worker{
 
 	public static void main (String args[]) {
 		
-		// Vérifier le bon usage du Worker
+		// On vérifie que le port est donnée
 		try {
 			if (args.length < 1) {
 				System.err.println("Le port n'est pas donnée");
@@ -57,7 +57,7 @@ public class WorkerImpl extends UnicastRemoteObject  implements Worker{
 			int port = Integer.parseInt(args[0]);
 			host = "localhost";
 			
-			// Création du registry sur le port donnée
+			// Création du registry sur le bon port
 			try {
 				registre = LocateRegistry.createRegistry(port);
 			} catch (Exception e) {
