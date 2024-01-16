@@ -16,6 +16,7 @@ public class Utils {
         int cpt = 0;
         int Taillefr = 0;
         ImplFileRW reader = new ImplFileRW(0, path, FileReaderWriter.FMT_TXT);
+        reader.open("r");
         String st;
         while ((st = reader.readtxt()) != null) {
                 if (!st.startsWith("#")) {
@@ -34,6 +35,7 @@ public class Utils {
         int cpt = 0;
         int nbMachines = nbServers;
         ImplFileRW reader = new ImplFileRW(0, path, FileReaderWriter.FMT_TXT);
+        reader.open("r");
         String[] noms = new String[nbMachines];
         String st;
         while ((st = reader.readtxt()) != null) {
@@ -54,6 +56,7 @@ public class Utils {
         int cpt = 0;
         int nbMachines = nbServers;
         ImplFileRW reader = new ImplFileRW(0, path, FileReaderWriter.FMT_TXT);
+        reader.open("r");
         String[] ports = new String[nbMachines];
         String st;
         while ((st = reader.readtxt()) != null) {
@@ -78,6 +81,7 @@ public class Utils {
         int cpt = 0;
         int nbMachines = nbServers;
         ImplFileRW reader = new ImplFileRW(0, path, FileReaderWriter.FMT_TXT);
+        reader.open("r");
         String[] ports = new String[nbMachines];
         BufferedReader br;
         String st;
@@ -103,6 +107,7 @@ public class Utils {
         int cpt = 0;
         int nbMachines = 0;
         ImplFileRW reader = new ImplFileRW(0, path, FileReaderWriter.FMT_TXT);
+        reader.open("r");
         String st;
         while ((st = reader.readtxt()) != null) {
                 if (!st.startsWith("#")) {
