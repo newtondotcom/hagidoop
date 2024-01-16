@@ -18,7 +18,7 @@ public class HdfsClient {
     private static String[] nomMachines;
     private static int nbServers;
     public static String path = Project.config;
-    private static Integer taille_fragment = recuptaille(path);
+    private static Integer taille_fragment = recupTaille(path);
     private static final KV cst = new KV("hi","hello");
     private static final String SOURCE_INPUT = "src/io/in/";
     private static final String SOURCE_OUTPUT = "src/io/out/";
@@ -26,28 +26,28 @@ public class HdfsClient {
 
     public static void main(String[] args) {
         try {
-            // On vérifie que l'utilisateur a bien rentré les arguments
+            // On vérifie  le nombnre d'arguments
             if (args.length<2) {
                 System.err.println("Pas assez d'arguments");
                 return;
             }
             storage = new PersistentStorage();
-            storage.ListFragments();
-            nbServers = recupnbmachines(path);
-            numPorts = recupport(path,nbServers);
-            nomMachines = recupnom(path,nbServers);
+            nbServers = recupNbMachines(path);
+            numPorts = recupPorts(path,nbServers);
+            nomMachines = recupNom(path,nbServers);
             int fmt = 0;
             if (args[0].equals("read")){
                 try {
                     String extension = args[2].split("\\.")[1];
                     if (!args[1].equals(extension)) {
-                        System.err.println("Les arguments de sont pas bon");
+                        System.err.println("Les arguments de sont pas les bons");
                         return;
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                     return;
                 }
+                HdfsRead(args[2]);
             } else if (args[0].equals("delete")){
                 HdfsDelete(args[1]);
             } else if (args[0].equals("write")){
@@ -80,7 +80,7 @@ public class HdfsClient {
                 String nom = inter[0];
                 String extension = inter[1];
                 ObjectOutputStream objectOS = new ObjectOutputStream(sock.getOutputStream());
-                objectOS.writeObject(":DELETE" + "#" + nom + "_" + Integer.toString(i) + "." + extension);
+                objectOS.writeObject(Project.CommandPrefix + "#" + nom + "_" + Integer.toString(i) + "." + extension);
                 objectOS.close();
                 sock.close();
             }
@@ -95,12 +95,14 @@ public class HdfsClient {
             ImplFileRW fichierLocal = new ImplFileRW((long) 0, SOURCE_INPUT+fname, fmt);
             fichierLocal.open("r");
             int i = 0;
+
+            // Boucle pour envoyer les fragments aux différents workers, avec possibilité de plusieurs fragments par worker
             while (true) {
                 int index = 0;
                 KV buffer = cst;
                 String buffertxt = "";
                 StringBuilder fragment = new StringBuilder();
-                // Process the fragment content
+                // Parcours du fichier pour créer le fragment
                 while (index < taille_fragment) {
                     if (fmt == FMT_KV) {
                         buffer = fichierLocal.read();
@@ -118,10 +120,13 @@ public class HdfsClient {
                         index = (int)(fichierLocal.getIndex() - i * taille_fragment);
                     }
                 }
+                // Si le fragment est vide, on arrête la boucle
                 if (fragment.length() == 0) {
                     // Break the loop if the fragment is empty
                     break;
                 }
+
+                // Modulo pour qu'un serveur ait plusieurs fragments sur lui et donc pluieurs workers
                 int t = i % nbServers;
                 System.out.println("Fragment " + i + " sent to " + nomMachines[t] + " on port " + numPorts[t]);
                 Socket socket = new Socket(nomMachines[t], numPorts[t]);
@@ -129,11 +134,13 @@ public class HdfsClient {
                 String nom = inter[0];
                 String extension = (fmt == FMT_KV) ? "kv" : "txt";
 
-                ObjectOutputStream objectOS = new ObjectOutputStream(socket.getOutputStream());
+
                 if (fragment.toString().equals("")) {
                     System.out.println("Fragment " + i + " is empty");
                 }
-                String obj = ":WRITE" + "#" + nom + "_" + i + "." + extension + "#" + fragment.toString();
+
+                ObjectOutputStream objectOS = new ObjectOutputStream(socket.getOutputStream());
+                String obj = Project.CommandPrefix + "WRITE" + "#" + nom + "_" + i + "." + extension + "#" + fragment.toString();
                 objectOS.writeObject(obj);
                 objectOS.close();
                 socket.close();
@@ -157,23 +164,20 @@ public class HdfsClient {
             System.out.println("Le fichier n'existe pas");
             nbfragments = 1;
         }
-        int format ;
-        if (extension.equals("txt")) {
-            format = FMT_TXT;
-        } else {
+        int format = 0;
+        if (extension.equals("kv")) {
             format = FMT_KV;
         }
         ImplFileRW fileLocal = new ImplFileRW((long) 0, SOURCE_OUTPUT+fname,format);
         fileLocal.open("w");
         try {
             int j;
-            System.out.println("hello this is the file "+fname);
-            System.out.println(String.valueOf(nbfragments)+" fragment(s)");
+            System.out.println("Le fichier " + fname + " contient " + String.valueOf(nbfragments)+" fragment(s)");
             for (int i = 0; i < nbfragments; i++) {
                 j = i % nbfragments;
                 Socket socket = new Socket (nomMachines[j], numPorts[j]);
                 ObjectOutputStream objectOS = new ObjectOutputStream(socket.getOutputStream());
-                objectOS.writeObject(":READ" + "#" + nom +"_"+ Integer.toString(i) + "." + extension);
+                objectOS.writeObject(Project.CommandPrefix + "#" + nom +"_"+ Integer.toString(i) + "." + extension);
                 ObjectInputStream objectIS = new ObjectInputStream(socket.getInputStream());
                 String fragment = (String) objectIS.readObject();
                 fileLocal.write(fragment);
