@@ -18,11 +18,10 @@ public class ImplFileRW implements FileReaderWriter{
   private String fName;
   private String mode;
 
-  public ImplFileRW(long _index, String _fName, String _mode, int format){
+  public ImplFileRW(long _index, String _fName, int format){
     this.index = _index;
     this.fName = _fName;
     Boolean exists = new File(this.fName).exists();
-    open(_mode);
   }
 
   public void open(String _mode){
@@ -131,9 +130,5 @@ public class ImplFileRW implements FileReaderWriter{
   }
   public String getFname(){
     return this.fName;
-  }
-
-  public int getFileLength(){
-    return (int) new File(this.fName).length();
   }
 }

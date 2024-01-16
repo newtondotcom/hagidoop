@@ -9,7 +9,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 
-import application.MyMapReduce;
+import impl.MapReduce;
+import hdfs.PersistentStorage;
 import interfaces.*;
 import impl.*;
 import config.*;
@@ -18,12 +19,12 @@ class MyThread extends Thread {
 	String nom;
 	int i;
 	String extension;	
-	MapReduce mr;
+	interfaces.MapReduce mr;
 	Worker[] listeWorker;
 	int nbWorker;
-	String mainMachineName = "heidi";
+	String mainMachineName = "ader";
 
-	public MyThread(String _nom, int _i, String _extension, MapReduce _mr, Worker[] _listeWorker, int _nbWorker) {
+	public MyThread(String _nom, int _i, String _extension, interfaces.MapReduce _mr, Worker[] _listeWorker, int _nbWorker) {
 		nom = _nom;
 		i = _i;
 		extension = _extension;
@@ -37,12 +38,14 @@ class MyThread extends Thread {
 		// On donne le nom du fichier HDFS que l'on récupère
 		String fSrcName = JobLauncher.path + nom + "_" + i + "." + extension;
 		// On créer le reader du fichier HDFS
-		ImplFileRW reader = new ImplFileRW(0, fSrcName, "r", FMT_TXT);
+		ImplFileRW reader = new ImplFileRW(0, fSrcName, FMT_TXT);
+		reader.open("r");
 		// On créer le writer pour le fichier temporaire pour le map
 		NetworkReaderWriter writer = new ImplNetworkRW(7001+i, mainMachineName);
 		// On créer le writer pour le fichier temporaire pour le reduce
 		String fKVName = JobLauncher.pathKV + nom + "_" + i + ".kv";
-		FileReaderWriter writerFinal = new ImplFileRW(0, fKVName, "w", FMT_KV);
+		FileReaderWriter writerFinal = new ImplFileRW(0, fKVName, FMT_KV);
+		writerFinal.open("w");
 		// On ouvre le serveur pour laisser le worker se connecter
 		writer.openServer();
 		// On lance le map sur le worker
@@ -75,17 +78,20 @@ public class JobLauncher extends UnicastRemoteObject {
 	// Nombre de machines
 	static int nbMachines = Utils.recupnbmachines(pathConfig);
 	// Nombre de fragment créer par HDFS
-	static int nbfragments = config.Utils.recupnbmachines(pathConfig);
+	static int nbfragments;
 
 	public JobLauncher(int _nbWorker, Worker[] _listWorkers) throws RemoteException{
 		nbWorker = _nbWorker;
 		listeWorker = _listWorkers;
 	}
 
-	public static void startJob (MapReduce mr, int format, String fname) throws RemoteException{
+	public static void startJob (interfaces.MapReduce mr, int format, String fname) throws RemoteException{
 		String[] inter = fname.split("\\.");
-    String nom = inter[0];
+		String nom = inter[0];
 		String extension = inter[1];
+
+		PersistentStorage storage = new PersistentStorage();
+		nbfragments = storage.getNbFragments(fname);
 
 		try{
 			// On créer les reader et les writer pour chaque fragment
@@ -112,10 +118,12 @@ public class JobLauncher extends UnicastRemoteObject {
 		// On créer le locale pour le français afin de mettre tous les mots en minuscule
 		Locale locale = new Locale("fr", "FR");
 		// On créer le writer pour le fichier final
-		ImplFileRW writer = new ImplFileRW(0, "Final.txt", "w", FMT_TXT);
+		ImplFileRW writer = new ImplFileRW(0, "Final.txt", FMT_TXT);
+		writer.open("w");
 		for(int i = 0; i < nbfragments; i++) {
 			// On créer le reader pour lire chaque fichier temporaire
-			ImplFileRW reader = new ImplFileRW(0, pathKV + filename + "_" + i + ".kv", "r", FMT_KV);
+			ImplFileRW reader = new ImplFileRW(0, pathKV + filename + "_" + i + ".kv", FMT_KV);
+			reader.open("r");
 			KV kv;
 			// On écrit sur le fichier final en vérifiant si un KV existe déja
 			while ((kv = reader.readkv()) != null) {
@@ -159,7 +167,7 @@ public class JobLauncher extends UnicastRemoteObject {
         }
 
       // On récupère les instance des worker sur les machines 
-      Worker[] listWorker = config.Utils.recupWorker(path);
+      Worker[] listWorker = config.Utils.recupWorker(Project.config);
       System.out.println("Récupération des workers terminée");
       // On créer le callback
 
@@ -167,14 +175,13 @@ public class JobLauncher extends UnicastRemoteObject {
       JobLauncher jobLauncher = new JobLauncher(nbMachines, listWorker);
 
       // On créer le MapReduce que l'on donnera au Worker
-      MyMapReduce mr = new MyMapReduce();
+      MapReduce mr = new MapReduce();
 
       // On lance le start Job
       System.out.println("StartJob");
       jobLauncher.startJob(mr, format, hdfsFilename);
       System.out.println("EndJob");
-
-
+	  System.exit(0);
     } catch (Exception e) {
       e.printStackTrace();
     }
