@@ -93,69 +93,58 @@ public class HdfsClient {
 
 	public static void HdfsWrite(int fmt, String fname) {
          try {
-            ImplFileRW fichierLocal = new ImplFileRW((long) 0, SOURCE_INPUT+fname, "r", fmt);
-        	long taille = fichierLocal.getFileLength();
+            ImplFileRW fichierLocal = new ImplFileRW((long) 0, SOURCE_INPUT+fname, fmt);
+            fichierLocal.open("r");
+             int i = 0;
+             while (true) {
+                 int index = 0;
+                 KV buffer = cst;
+                 String buffertxt = "";
+                 StringBuilder fragment = new StringBuilder();
 
-            // Params with a fixed fragment size
-        	int nbfragments = (int) (taille/taille_fragment);
-            if (taille%taille_fragment != 0) { nbfragments ++;}
+                 // Process the fragment content
+                 while (index < taille_fragment) {
+                     if (fmt == FMT_KV) {
+                         buffer = fichierLocal.read();
+                         if (buffer == null) {
+                             break;
+                         }
+                         fragment.append(buffer.k).append(KV.SEPARATOR).append(buffer.v).append("\n");
+                         index = (int)(fichierLocal.getIndex() - i * taille_fragment);
+                     } else if (fmt == FMT_TXT) {
+                         buffertxt = fichierLocal.readtxt();
+                         if (buffertxt == null) {
+                             break;
+                         }
+                         fragment.append(buffertxt).append("\n");
+                         index = (int)(fichierLocal.getIndex() - i * taille_fragment);
+                     }
+                 }
 
-             //Params with a fixed number of fragments
-             //int nbfragments = 2;
-             //taille_fragment = Math.toIntExact(taille / 2);
+                 if (fragment.length() == 0) {
+                     // Break the loop if the fragment is empty
+                     break;
+                 }
 
-             System.out.println(String.valueOf(nbfragments)+" fragment(s)");
+                 int t = i % nbServers;
+                 System.out.println("Fragment " + i + " sent to " + nomMachines[t] + " on port " + numPorts[t]);
+                 Socket socket = new Socket(nomMachines[t], numPorts[t]);
+                 String[] inter = fname.split("\\.");
+                 String nom = inter[0];
+                 String extension = (fmt == FMT_KV) ? "kv" : "txt";
 
-        	// Ajouter le nombre de fragments dans le fichier node.
-        	node.addFragment(fname, nbfragments);
+                 ObjectOutputStream objectOS = new ObjectOutputStream(socket.getOutputStream());
+                 if (fragment.toString().equals("")) {
+                     System.out.println("Fragment " + i + " is empty");
+                 }
+                 String obj = ":WRITE" + "#" + nom + "_" + i + "." + extension + "#" + fragment.toString();
+                 objectOS.writeObject(obj);
+                 objectOS.close();
+                 socket.close();
 
-                for (int i = 0; i < nbfragments; i++) {
-
-                    int index = 0;
-                    KV buffer = cst;
-                    String buffertxt = "";
-                    StringBuilder fragment = new StringBuilder();
-
-                    // Process the fragment content
-                    while (index < taille_fragment) {
-                        if (fmt == FMT_KV) {
-                            buffer = fichierLocal.read();
-                            if (buffer == null) {
-                                break;
-                            }
-                            fragment.append(buffer.k).append(KV.SEPARATOR).append(buffer.v).append("\n");
-                            index = (int)(fichierLocal.getIndex() - i * taille_fragment);
-                        } else if (fmt == FMT_TXT) {
-                            buffertxt = fichierLocal.readtxt();
-                            if (buffertxt == null) {
-                                break;
-                            }
-                            fragment.append(buffertxt).append("\n");
-                            index = (int)(fichierLocal.getIndex() - i * taille_fragment);
-                        }
-                    }
-
-                    int t = i % nbServers;
-                    System.out.println("Fragment "+i+" sent to "+nomMachines[t]+"on port "+numPorts[t]);
-                    Socket socket = new Socket(nomMachines[t], numPorts[t]);
-                    String[] inter = fname.split("\\.");
-                    String nom = inter[0];
-                    String extension;
-                    if (fmt == FMT_KV) {
-                        extension = "kv";
-                    } else {
-                        extension = "txt";
-                    }
-
-                    ObjectOutputStream objectOS = new ObjectOutputStream(socket.getOutputStream());
-                    if (fragment.toString().equals("")) {
-                        System.out.println("Fragment "+i+" is empty");
-                    }
-                    String obj = ":WRITE" + "#" + nom + "_" + i + "." + extension + "#" + fragment.toString();
-                    objectOS.writeObject(obj);
-                    objectOS.close();
-                    socket.close();
-                }
+                 i++;
+             }
+             node.addFragment(fname, i);
              fichierLocal.close();
 
                 System.out.println("OPERATION WRITE FINISHED on file "+fname);
@@ -180,7 +169,8 @@ public class HdfsClient {
         } else {
             format = FMT_KV;
         }
-        ImplFileRW fileLocal = new ImplFileRW((long) 0, SOURCE_OUTPUT+fname, "w",format);
+        ImplFileRW fileLocal = new ImplFileRW((long) 0, SOURCE_OUTPUT+fname,format);
+        fileLocal.open("w");
         try {
             int j;
             System.out.println("hello this is the file "+fname);

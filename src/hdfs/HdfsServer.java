@@ -41,7 +41,8 @@ public class HdfsServer {
                     case ":WRITE" :
                         File folder = new File("/tmp/data/");
                         Boolean exists = folder.mkdir();
-                        ImplFileRW fileRW = new ImplFileRW(0, "/tmp/data/"+req[1], "w", type);
+                        ImplFileRW fileRW = new ImplFileRW(0, "/tmp/data/"+req[1], type);
+                        fileRW.open("w");
                         String content;
                         if (req.length > 2){
                             content = req[2];
@@ -54,7 +55,8 @@ public class HdfsServer {
                         break;
                     
                     case ":READ" :
-                        ImplFileRW fileRW2 = new ImplFileRW(0, "/tmp/data/"+req[1], "r", type);
+                        ImplFileRW fileRW2 = new ImplFileRW(0, "/tmp/data/"+req[1], type);
+                        fileRW2.open("r");
                         StringBuilder fragment = new StringBuilder();
                         String d = "";
                         while (true) {
