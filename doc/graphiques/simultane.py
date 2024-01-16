@@ -3,7 +3,7 @@ import numpy as np
 
 # Données
 nbMachine = [2, 3, 5]
-times = [7, 10.277, 5.99]
+times = [15.760, 10.277, 5.99]
 
 times2 = [5.537, 9.18, 13.270, 17.118]
 tailleFichier = [2.7, 5.5, 8, 11]
