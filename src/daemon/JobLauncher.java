@@ -67,7 +67,7 @@ public class JobLauncher extends UnicastRemoteObject {
 	static Worker[] listeWorker;
 
 	// chemin pour le fichier de configuration
-  public static String pathConfig = Project.config;
+  	public static String pathConfig = Project.config;
 
 	// Chemin d'accès vers les fragments
 	final static String path = "/tmp/data/";
@@ -77,7 +77,7 @@ public class JobLauncher extends UnicastRemoteObject {
 	static int format;
 
 	// Nombre de machines
-	static int nbMachines = Utils.recupnbmachines(pathConfig);
+	static int nbMachines = Utils.recupNbMachines(pathConfig);
 	// Nombre de fragment créer par HDFS
 	static int nbfragments;
 
