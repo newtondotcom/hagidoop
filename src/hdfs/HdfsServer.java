@@ -12,10 +12,6 @@ import java.util.Objects;
 public class HdfsServer {
 
 	public static void main(String[] args) {
-
-        // Format de la commande côté client :
-		// java HdfsClient write <txt|kv> <file> ou java HdfsClient <read | delete> <file>
-
         try {
             // Récupération du port
             int port = Integer.parseInt(args[0]);
@@ -33,29 +29,24 @@ public class HdfsServer {
                 String commande = req[0];
                 String extension = req[1].split("\\.")[1];
                 int type = 0;
-                if (extension.equals("kv")) type = FileReaderWriter.FMT_KV;
-
-                // Switch sur la commande
-                switch (commande) {
-                    
-                    case ":WRITE" :
-                        File folder = new File("/tmp/data/");
-                        Boolean exists = folder.mkdir();
-                        ImplFileRW fileRW = new ImplFileRW(0, "/tmp/data/"+req[1], type);
-                        fileRW.open("w");
-                        String content;
-                        if (req.length > 2){
-                            content = req[2];
-                        } else {
-                            content = "";
-                        }
-                        fileRW.write(content.trim());
-                        fileRW.close();
-                        System.out.println("OPERATION WRITE FINISHED on file "+req[1]);
-                        break;
-                    
-                    case ":READ" :
-                        ImplFileRW fileRW2 = new ImplFileRW(0, "/tmp/data/"+req[1], type);
+                if (extension.equals("kv")) {
+                type = FileReaderWriter.FMT_KV;
+                }
+                if(commande.equals(":WRITE")){
+                File folder = new File("/tmp/data/");
+                Boolean exists = folder.mkdir();
+                ImplFileRW fileRW = new ImplFileRW(0, "/tmp/data/"+req[1], type);
+                fileRW.open("w");
+                String content;
+                if (req.length > 2){
+                    content = req[2];
+                } else {
+                    content = "";
+                }
+                fileRW.write(content.trim());
+                fileRW.close();
+                } else if (commande.equals(":READ")){
+                    ImplFileRW fileRW2 = new ImplFileRW(0, "/tmp/data/"+req[1], type);
                         fileRW2.open("r");
                         StringBuilder fragment = new StringBuilder();
                         String d = "";
@@ -72,15 +63,11 @@ public class HdfsServer {
                         objectos.writeObject(fragment.toString());
                         fileRW2.close();
                         objectos.close();
-
-                        System.out.println("OPERATION READ FINISHED on file "+req[1]);
-                        break;
-
-                    case ":DELETE" :
-                        File file = new File("/tmp/data/"+req[1]);
-                        boolean deleted = file.delete();
-                        System.out.println("OPERATION DELETE FINISHED on file "+req[1]+" : "+deleted);
-                        break;
+                } else if (commande.equals(":DELETE")){
+                    File file = new File("/tmp/data/"+req[1]);
+                    boolean deleted = file.delete();
+                } else {
+                    System.out.println("Commande inconnue");
                 }
                 objectIS.close();
                 socket.close();
@@ -89,6 +76,5 @@ public class HdfsServer {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-
     }
 }

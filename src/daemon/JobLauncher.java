@@ -5,6 +5,7 @@ import static interfaces.FileReaderWriter.FMT_TXT;
 
 import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 
