@@ -64,9 +64,9 @@ public class ImplNetworkRW implements NetworkReaderWriter{
       e.printStackTrace();
     }
   }
+  
 	public void openClient(){
     try{
-      System.out.println(this.host + this.port);
       Socket ss = new Socket(this.host, this.port);
       this.is = ss.getInputStream();
       this.os = ss.getOutputStream();
