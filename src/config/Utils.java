@@ -12,26 +12,24 @@ import interfaces.FileReaderWriter;
 
 public class Utils {
 
-    public static int recuptaille(String path) {
+    public static int recupTaille(String path) {
         int cpt = 0;
-        int Taillefr = 0;
+        int taille = 0;
         ImplFileRW reader = new ImplFileRW(0, path, FileReaderWriter.FMT_TXT);
         reader.open("r");
         String st;
         while ((st = reader.readtxt()) != null) {
-                if (!st.startsWith("#")) {
-                    if (cpt == 3) {
-                        Taillefr = Integer.parseInt(st);
-                    }
-                    cpt++;
-                }
+            if (cpt == 3) {
+                taille = Integer.parseInt(st);
+            }
+            cpt++;
         }
         reader.close();
-        return Taillefr;
+        return taille;
 
     }
 
-    public static String[] recupnom(String path, Integer nbServers) {
+    public static String[] recupNom(String path, Integer nbServers) {
         int cpt = 0;
         int nbMachines = nbServers;
         ImplFileRW reader = new ImplFileRW(0, path, FileReaderWriter.FMT_TXT);
@@ -39,12 +37,10 @@ public class Utils {
         String[] noms = new String[nbMachines];
         String st;
         while ((st = reader.readtxt()) != null) {
-                if (!st.startsWith("#")) {
-                    if (cpt == 0) {
-                        noms = st.split(",");
-                    }
-                    cpt++;
-                }
+            if (cpt == 0) {
+                noms = st.split(",");
+            }
+            cpt++;
         }
         reader.close();
 
@@ -52,7 +48,7 @@ public class Utils {
 
     }
 
-    public static int[] recupport(String path, Integer nbServers) {
+    public static int[] recupPorts(String path, Integer nbServers) {
         int cpt = 0;
         int nbMachines = nbServers;
         ImplFileRW reader = new ImplFileRW(0, path, FileReaderWriter.FMT_TXT);
@@ -60,24 +56,22 @@ public class Utils {
         String[] ports = new String[nbMachines];
         String st;
         while ((st = reader.readtxt()) != null) {
-                if (!st.startsWith("#")) {
-                    if (cpt == 1) {
-                        ports = st.split(",");
-                    }
-                    cpt++;
-                }
+            if (cpt == 1) {
+                ports = st.split(",");
+            }
+            cpt++;
         }
         reader.close();
 
-        int[] intports = new int [nbMachines];
+        int[] tabports = new int [nbMachines];
         for (int i=0; i<nbMachines; i++){
-            intports[i] = Integer.parseInt(ports[i]);
+            tabports[i] = Integer.parseInt(ports[i]);
         }
-        return intports;
+        return tabports;
 
     }
 
-    public static int[] recuprmi(String path, Integer nbServers) {
+    public static int[] recupRMI(String path, Integer nbServers) {
         int cpt = 0;
         int nbMachines = nbServers;
         ImplFileRW reader = new ImplFileRW(0, path, FileReaderWriter.FMT_TXT);
@@ -86,36 +80,32 @@ public class Utils {
         BufferedReader br;
         String st;
         while ((st = reader.readtxt()) != null) {
-                if (!st.startsWith("#")) {
-                    if (cpt == 2) {
-                        ports = st.split(",");
-                    }
-                    cpt++;
-                }
+            if (cpt == 2) {
+                ports = st.split(",");
+            }
+            cpt++;
         }
         reader.close();
 
-        int[] intports = new int [nbMachines];
+        int[] tabports = new int [nbMachines];
         for (int i=0; i<nbMachines; i++){
-            intports[i] = Integer.parseInt(ports[i]);
+            tabports[i] = Integer.parseInt(ports[i]);
         }
-        return intports;
+        return tabports;
 
     }
 
-    public static int recupnbmachines(String path) {
+    public static int recupNbMachines(String path) {
         int cpt = 0;
         int nbMachines = 0;
         ImplFileRW reader = new ImplFileRW(0, path, FileReaderWriter.FMT_TXT);
         reader.open("r");
         String st;
         while ((st = reader.readtxt()) != null) {
-                if (!st.startsWith("#")) {
-                    if (cpt == 0) {
-                        nbMachines = st.split(",").length;
-                    }
-                    cpt++;
-                }
+            if (cpt == 0) {
+                nbMachines = st.split(",").length;
+            }
+            cpt++;
         }
         reader.close();
         return nbMachines;
@@ -126,8 +116,8 @@ public class Utils {
 		String[] noms = new String[_nbMachines];
 		String[] urls = new String[_nbMachines];
 
-        noms = recupnom(_path, _nbMachines);
-        ports = recuprmi(_path, _nbMachines);
+        noms = recupNom(_path, _nbMachines);
+        ports = recupRMI(_path, _nbMachines);
 
         if (noms.length != 0 && ports.length == noms.length) {
             for (int i=0 ; i < _nbMachines ; i++) {
@@ -140,7 +130,7 @@ public class Utils {
   }
 
   public static Worker[] recupWorker(String _path) {
-    int nbMachines = config.Utils.recupnbmachines(_path);
+    int nbMachines = config.Utils.recupNbMachines(_path);
     Worker[] listWorker = new Worker[nbMachines];
     String[] urlWorker = recupURLWorker(_path, nbMachines);
     try {
