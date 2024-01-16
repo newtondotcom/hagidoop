@@ -13,9 +13,9 @@ import interfaces.NetworkReaderWriter;
 
 public class WorkerImpl extends UnicastRemoteObject  implements Worker{
 
-  // Registre du service daemon
+  // Registre du service worker
   static Registry registre;
-	// Host du worker
+	// Host de la machine worker
 	static String host;
 
 
@@ -36,7 +36,7 @@ public class WorkerImpl extends UnicastRemoteObject  implements Worker{
 			// On ferme le fichier
 			reader.close();
 
-			// On ecrit un KV pour définir la fin du fichier
+			// On ecrit un KV EOF pour définir la fin du fichier
 			writer.write(new KV("EOF","0"));
 			System.out.println("Fermeture du worker");
 		} catch (Exception e){
@@ -46,10 +46,10 @@ public class WorkerImpl extends UnicastRemoteObject  implements Worker{
 
 	public static void main (String args[]) {
 		
-		// vérifier le bon usage du daemon
+		// Vérifier le bon usage du Worker
 		try {
 			if (args.length < 1) {
-				System.err.println("DaemonImpl port non donnée");
+				System.err.println("Le port n'est pas donnée");
 				System.exit(1);
 			}
 			
@@ -69,7 +69,7 @@ public class WorkerImpl extends UnicastRemoteObject  implements Worker{
 			
 			// Inscription auprès du registre et envoie du worker
 			Naming.bind(url, new WorkerImpl());
-			System.out.println("Inscription de l'objet avec l'url : " + url);
+			System.out.println("Bind du Worker sur l'url : " + url);
 			
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -9,8 +9,8 @@ import interfaces.FileReaderWriter;
 public class ImplFileRW implements FileReaderWriter{
 
   private long index;
-  private transient BufferedReader br;
-  private transient BufferedWriter bw;
+  private transient BufferedReader bufferedReader;
+  private transient BufferedWriter bufferedWriter;
 
   private KV kv;
 
@@ -21,7 +21,6 @@ public class ImplFileRW implements FileReaderWriter{
   public ImplFileRW(long _index, String _fName, int format){
     this.index = _index;
     this.fName = _fName;
-    Boolean exists = new File(this.fName).exists();
   }
 
   public void open(String _mode){
@@ -29,10 +28,10 @@ public class ImplFileRW implements FileReaderWriter{
       System.out.println("Ouverture du fichier " + this.fName + " en mode " + _mode);
         this.mode = _mode;
         if (_mode.equals("r")){
-          this.br = new BufferedReader(new FileReader(this.fName));
+          this.bufferedReader = new BufferedReader(new FileReader(this.fName));
         }
         else if (_mode.equals("w")){
-          this.bw = new BufferedWriter(new FileWriter(this.fName));
+          this.bufferedWriter = new BufferedWriter(new FileWriter(this.fName));
         }
         else {
           System.out.println("Mode invalide");
@@ -43,10 +42,10 @@ public class ImplFileRW implements FileReaderWriter{
   }
   public void close(){
     try{
-      if (this.br != null){
-        this.br.close();
+      if (this.bufferedReader != null){
+        this.bufferedReader.close();
       } else {
-        this.bw.close();
+        this.bufferedWriter.close();
       }
     } catch (Exception e){
       e.printStackTrace();
@@ -55,21 +54,21 @@ public class ImplFileRW implements FileReaderWriter{
   public void write(KV record) {
     try {
       String s = record.k+KV.SEPARATOR+record.v;
-      bw.write(s, 0, s.length());
-      bw.newLine();
-      bw.flush();
+      bufferedWriter.write(s, 0, s.length());
+      bufferedWriter.newLine();
+      bufferedWriter.flush();
       index += s.length();
     } catch (IOException e) {
       e.printStackTrace();
     }
   }
 
-  public void write(String record) {
+  public void write(String _record) {
     try {
-      bw.write(record, 0, record.length());
-      bw.newLine();
-      bw.flush();
-      index += record.length();
+      bufferedWriter.write(_record, 0, _record.length());
+      bufferedWriter.newLine();
+      bufferedWriter.flush();
+      index += _record.length();
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -79,7 +78,7 @@ public class ImplFileRW implements FileReaderWriter{
     this.kv = new KV("", "");
     try {
       kv.k = String.valueOf(0);
-      kv.v = br.readLine();
+      kv.v = bufferedReader.readLine();
       if (kv.v == null) return null;
       index += kv.v.length();
       return kv;
@@ -91,7 +90,7 @@ public class ImplFileRW implements FileReaderWriter{
 
   public String readtxt(){
     try {
-      String l = br.readLine();
+      String l = bufferedReader.readLine();
       if (l == null) return null;
       index += l.length();
       return l;
@@ -105,7 +104,7 @@ public class ImplFileRW implements FileReaderWriter{
     this.kv = new KV("", "");
     try {
       while (true) {
-          String l = br.readLine();
+          String l = bufferedReader.readLine();
           if (l == null) return null;
           index += l.length();
           String[] tokens = l.split(KV.SEPARATOR);
