@@ -5,7 +5,6 @@ import static interfaces.FileReaderWriter.FMT_TXT;
 
 import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 
@@ -24,13 +23,12 @@ class MyThread extends Thread {
 	int nbWorker;
 	String mainMachineName = "ader";
 
-	public MyThread(String _nom, int _i, String _extension, interfaces.MapReduce _mr, Worker[] _listeWorker, int _nbWorker) {
+	public MyThread(String _nom, int _i, String _extension, interfaces.MapReduce _mr, Worker[] _listeWorker) {
 		nom = _nom;
 		i = _i;
 		extension = _extension;
 		mr = _mr;
 		listeWorker = _listeWorker;
-		nbWorker = _nbWorker;
 	}
 	public void run() {
 		try{
@@ -63,8 +61,6 @@ class MyThread extends Thread {
 }
 
 public class JobLauncher extends UnicastRemoteObject {
-	// Nombre de worker équivalent au nombre de machine qui travaille
-	static int nbWorker;
 	// Liste des workers
 	static Worker[] listeWorker;
 
@@ -75,13 +71,15 @@ public class JobLauncher extends UnicastRemoteObject {
 	final static String path = "/tmp/data/";
 	final static String pathKV = "temp/";
 
+	// Format du fichiers que l'on lit en entrée
+	static int format;
+
 	// Nombre de machines
 	static int nbMachines = Utils.recupnbmachines(pathConfig);
 	// Nombre de fragment créer par HDFS
 	static int nbfragments;
 
-	public JobLauncher(int _nbWorker, Worker[] _listWorkers) throws RemoteException{
-		nbWorker = _nbWorker;
+	public JobLauncher(Worker[] _listWorkers) throws RemoteException{
 		listeWorker = _listWorkers;
 	}
 
@@ -89,6 +87,8 @@ public class JobLauncher extends UnicastRemoteObject {
 		String[] inter = fname.split("\\.");
 		String nom = inter[0];
 		String extension = inter[1];
+
+
 
 		PersistentStorage storage = new PersistentStorage();
 		nbfragments = storage.getNbFragments(fname);
@@ -98,7 +98,7 @@ public class JobLauncher extends UnicastRemoteObject {
 			MyThread[] threadsList = new MyThread[nbfragments];
 			for (int i = 0 ; i < nbfragments; i++) {
 				// On lance les différents Thread sur toutes les machines
-				threadsList[i] = new MyThread(nom, i, extension, mr, listeWorker, nbWorker);
+				threadsList[i] = new MyThread(nom, i, extension, mr, listeWorker);
 				threadsList[i].start();
 			}
 			for (int i = 0; i < nbfragments; i++) {
@@ -137,49 +137,37 @@ public class JobLauncher extends UnicastRemoteObject {
 
   public static void main(String[] args) throws RemoteException{
     try{
-      // Formats de fichiers utilisables
-      String[] formats = {"line","kv"};
-      // Informations de format de fichier
-      int format;
-
       // On vérifie qu'il y a assez d'argument pour appeler le client
       if (args.length < 2) {
           System.err.println("Erreur lancement HagidoopClient, pass assez d'argument"); 
           System.exit(1);
-      } else {
-        if (!Arrays.asList(formats).contains(args[1])) {
-          System.err.println("Erreur lancement HagidoopClient, format de fichier non reconnu");
-          System.exit(1);
-        }
-      }
+      } 
 
       // On récupère le nom du fichier où l'on applique le traitement
-      String hdfsFilename = args[0];
-
-      // On créer le nom du fichier avant le reduce
-      String[] nomExt = hdfsFilename.split("\\.");
+      String nomFichier = args[0];
 
       // Récupérer le format de fichier indiqué en argument
         if (args[1].equals("line")) {
           format = 0;
-        } else {
-          format = 1;
+        } else if (args[1].equals("txt")) {
+					format = 1;
+				} else{
+          System.err.println("Format de fichier non reconnu");
         }
 
       // On récupère les instance des worker sur les machines 
       Worker[] listWorker = config.Utils.recupWorker(Project.config);
       System.out.println("Récupération des workers terminée");
-      // On créer le callback
 
       // On créer Le jobLauncher, celui qui va lancer le reduce sur chacune des machines
-      JobLauncher jobLauncher = new JobLauncher(nbMachines, listWorker);
+      JobLauncher jobLauncher = new JobLauncher(listWorker);
 
       // On créer le MapReduce que l'on donnera au Worker
       MapReduce mr = new MapReduce();
 
       // On lance le start Job
       System.out.println("StartJob");
-      jobLauncher.startJob(mr, format, hdfsFilename);
+      JobLauncher.startJob(mr, format, nomFichier);
       System.out.println("EndJob");
 	  System.exit(0);
     } catch (Exception e) {
