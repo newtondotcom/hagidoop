@@ -55,9 +55,8 @@ public class Utils {
         int nbMachines = nbServers;
         ImplFileRW reader = new ImplFileRW(0, path, FileReaderWriter.FMT_TXT);
         String[] ports = new String[nbMachines];
-        BufferedReader br;
         String st;
-        while ((st = br.readLine()) != null) {
+        while ((st = reader.readtxt()) != null) {
                 if (!st.startsWith("#")) {
                     if (cpt == 1) {
                         ports = st.split(",");
