@@ -42,7 +42,12 @@ public class HdfsServer {
                         File folder = new File("/tmp/data/");
                         Boolean exists = folder.mkdir();
                         ImplFileRW fileRW = new ImplFileRW(0, "/tmp/data/"+req[1], "w", type);
-                        String content = req[2];
+                        String content;
+                        if (req.length > 2){
+                            content = req[2];
+                        } else {
+                            content = "";
+                        }
                         fileRW.write(content.trim());
                         fileRW.close();
                         System.out.println("OPERATION WRITE FINISHED on file "+req[1]);

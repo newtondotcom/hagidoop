@@ -148,6 +148,9 @@ public class HdfsClient {
                     }
 
                     ObjectOutputStream objectOS = new ObjectOutputStream(socket.getOutputStream());
+                    if (fragment.toString().equals("")) {
+                        System.out.println("Fragment "+i+" is empty");
+                    }
                     String obj = ":WRITE" + "#" + nom + "_" + i + "." + extension + "#" + fragment.toString();
                     objectOS.writeObject(obj);
                     objectOS.close();

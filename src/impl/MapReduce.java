@@ -1,13 +1,12 @@
-package application;
+package impl;
 
 import java.util.HashMap;
 
 import interfaces.KV;
-import interfaces.MapReduce;
 import interfaces.Reader;
 import interfaces.Writer;
 
-public class MyMapReduce implements MapReduce {
+public class MapReduce implements interfaces.MapReduce {
 	private static final long serialVersionUID = 1L;
 
 	// MapReduce program that compute word counts
@@ -21,7 +20,6 @@ public class MyMapReduce implements MapReduce {
 				if (hm.containsKey(tok)) hm.put(tok, hm.get(tok)+1);
 				else hm.put(tok, 1);
 			}
-			System.out.println("Map : " + kv.v);
 		}
 		for (String k : hm.keySet()) writer.write(new KV(k,hm.get(k).toString()));
 	}

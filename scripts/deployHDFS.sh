@@ -1,9 +1,5 @@
 #!/bin/bash
 
-###############################################################
-###################### CONFIGURATION ##########################
-###############################################################
-
 # Récupérer la 2e ligne du fichier de config (noms des machines)
 listepc=$(sed "2q;d" src/config/main_n7.cfg)
 
@@ -32,7 +28,7 @@ index=0
     ssh raugerea2@${tabpc[$index]} rm -rf ${chemin}/bin/
     ssh raugerea2@${tabpc[$index]} mkdir -p ${chemin}/bin/
     scp -r src/ raugerea2@${tabpc[$index]}:${chemin}/
-    scp -r filesample.txt raugerea2@${tabpc[$index]}:${chemin}/
+    scp -r data/ raugerea2@${tabpc[$index]}:${chemin}/
     scp -r scripts/ raugerea2@${tabpc[$index]}:${chemin}/
     ssh raugerea2@${tabpc[$index]} javac -d ${chemin}/bin ${chemin}/src/**/*.java
 #fi
@@ -41,7 +37,7 @@ for index in ${!tabpc[*]}; do
   # Creer le dossier data if it doesn't exist
   ssh raugerea2@${tabpc[$index]} 'mkdir -p /tmp/data'
 
-  echo " java -cp ${chemin}/bin daemon.WorkerImpl ${tabph[$index]} &"
+  echo " java -cp ${chemin}/bin hdfs.HdfsServer ${tabph[$index]} &"
   # Lancer les démons Hdfs
   ssh raugerea2@${tabpc[$index]} java -cp ${chemin}/bin hdfs.HdfsServer ${tabph[$index]} &
 done

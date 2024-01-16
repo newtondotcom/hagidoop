@@ -9,7 +9,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 
-import application.MyMapReduce;
+import impl.MapReduce;
+import hdfs.PersistentStorage;
 import interfaces.*;
 import impl.*;
 import config.*;
@@ -18,12 +19,12 @@ class MyThread extends Thread {
 	String nom;
 	int i;
 	String extension;	
-	MapReduce mr;
+	interfaces.MapReduce mr;
 	Worker[] listeWorker;
 	int nbWorker;
-	String mainMachineName = "heidi";
+	String mainMachineName = "farman";
 
-	public MyThread(String _nom, int _i, String _extension, MapReduce _mr, Worker[] _listeWorker, int _nbWorker) {
+	public MyThread(String _nom, int _i, String _extension, interfaces.MapReduce _mr, Worker[] _listeWorker, int _nbWorker) {
 		nom = _nom;
 		i = _i;
 		extension = _extension;
@@ -75,17 +76,20 @@ public class JobLauncher extends UnicastRemoteObject {
 	// Nombre de machines
 	static int nbMachines = Utils.recupnbmachines(pathConfig);
 	// Nombre de fragment créer par HDFS
-	static int nbfragments = config.Utils.recupnbmachines(pathConfig);
+	static int nbfragments;
 
 	public JobLauncher(int _nbWorker, Worker[] _listWorkers) throws RemoteException{
 		nbWorker = _nbWorker;
 		listeWorker = _listWorkers;
 	}
 
-	public static void startJob (MapReduce mr, int format, String fname) throws RemoteException{
+	public static void startJob (interfaces.MapReduce mr, int format, String fname) throws RemoteException{
 		String[] inter = fname.split("\\.");
-    String nom = inter[0];
+		String nom = inter[0];
 		String extension = inter[1];
+
+		PersistentStorage storage = new PersistentStorage();
+		nbfragments = storage.getNbFragments(fname);
 
 		try{
 			// On créer les reader et les writer pour chaque fragment
@@ -159,7 +163,7 @@ public class JobLauncher extends UnicastRemoteObject {
         }
 
       // On récupère les instance des worker sur les machines 
-      Worker[] listWorker = config.Utils.recupWorker(path);
+      Worker[] listWorker = config.Utils.recupWorker(Project.config);
       System.out.println("Récupération des workers terminée");
       // On créer le callback
 
@@ -167,14 +171,13 @@ public class JobLauncher extends UnicastRemoteObject {
       JobLauncher jobLauncher = new JobLauncher(nbMachines, listWorker);
 
       // On créer le MapReduce que l'on donnera au Worker
-      MyMapReduce mr = new MyMapReduce();
+      MapReduce mr = new MapReduce();
 
       // On lance le start Job
       System.out.println("StartJob");
       jobLauncher.startJob(mr, format, hdfsFilename);
       System.out.println("EndJob");
-
-
+	  System.exit(0);
     } catch (Exception e) {
       e.printStackTrace();
     }
