@@ -1,5 +1,6 @@
 package impl;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -16,11 +17,13 @@ public class ImplNetworkRW implements NetworkReaderWriter{
   public int port;
 
   // Stream
-  OutputStream os;
-  InputStream is;
+  transient OutputStream os;
+  transient ObjectOutputStream oos;
+  transient InputStream is;
+  transient ObjectInputStream ois;
 
-  public ServerSocket ssck;
-  public Socket s;
+  public transient ServerSocket ssck;
+  public transient Socket s;
 
   public String host;
 
@@ -30,15 +33,44 @@ public class ImplNetworkRW implements NetworkReaderWriter{
     this.host = _host;
   }
 
+  public ImplNetworkRW(int _port, String _host, OutputStream _os, InputStream _is, ObjectOutputStream _oos, ObjectInputStream _ois){
+    this.port = _port;
+    this.host = _host;
+    this.os = _os;
+    this.is = _is;
+    this.ois = _ois;
+    this.oos = _oos;
+  }
+
+  public ImplNetworkRW(int port, String _host, Socket _s){
+    this.port = port;
+    this.host = _host;
+    this.s = _s;
+    try {
+      this.os = s.getOutputStream();
+      this.is = s.getInputStream();
+      this.oos = new ObjectOutputStream(os);
+      this.ois = new ObjectInputStream(is);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
   public void openServer(){
-    try(ServerSocket ssck = new ServerSocket(this.port)){
+    try{
+      ServerSocket ssck = new ServerSocket(this.port);
       this.ssck = ssck;
     } catch (Exception e){
       e.printStackTrace();
     }
   }
+  
 	public void openClient(){
-    try(Socket ss = new Socket(this.host, this.port)){
+    try{
+      Socket ss = new Socket(this.host, this.port);
+      this.is = ss.getInputStream();
+      this.os = ss.getOutputStream();
+      this.oos = new ObjectOutputStream(os);  
       this.s = ss;
     } catch (Exception e){
       e.printStackTrace();
@@ -47,10 +79,10 @@ public class ImplNetworkRW implements NetworkReaderWriter{
 	public NetworkReaderWriter accept(){
     try {
       this.s = ssck.accept();
-      is = s.getInputStream();
-      os = s.getOutputStream();
-
-      return new ImplNetworkRW(this.port, this.host);
+      this.is = s.getInputStream();
+      this.ois = new ObjectInputStream(is);
+      this.os = s.getOutputStream();
+      return new ImplNetworkRW(this.port, this.host, this.os, this.is, this.oos, this.ois);
     } catch (Exception e){
       e.printStackTrace();
     }
@@ -65,7 +97,7 @@ public class ImplNetworkRW implements NetworkReaderWriter{
   }
 	public void closeClient(){
     try {
-      s.close();
+      this.s.close();
     } catch (Exception e){
       e.printStackTrace();
     }
@@ -74,23 +106,33 @@ public class ImplNetworkRW implements NetworkReaderWriter{
   @Override
   public void write(KV _record){
     try {
-      ObjectOutputStream oos = new ObjectOutputStream(os);
       oos.writeObject(_record);
     } catch (IOException e) {
       e.printStackTrace();
     }
   } 
   @Override
-  public KV read(){
-    KV record = null;
+  public KV read() {
     try {
-      ObjectInputStream ois = new ObjectInputStream(is);
-      Object object = ois.read();
-      record = new KV("Undefined", (String)object);
-    } catch (IOException e) {
-      e.printStackTrace();
-      return null;
+        Object object = ois.readObject();
+        if (object instanceof KV) {
+            KV kv = (KV) object;
+            if (kv.k.equals("EOF")) {
+                return null;
+            } else {
+                return kv;
+            }
+        } else {
+            System.err.println("Object non reconnu");
+            return null;
+        }
+    } catch (EOFException e) {
+        // La fin du flux a été atteinte, c'est normal.
+        // Vous pouvez traiter cette exception si nécessaire.
+        return null;
+    } catch (IOException | ClassNotFoundException e) {
+        e.printStackTrace();
+        return null;
     }
-    return record;
-  }
+}
 }

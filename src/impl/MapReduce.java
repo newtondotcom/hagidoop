@@ -1,15 +1,12 @@
-package application;
+package impl;
 
 import java.util.HashMap;
 
-import daemon.JobLauncher;
-import interfaces.FileReaderWriter;
 import interfaces.KV;
-import interfaces.MapReduce;
 import interfaces.Reader;
 import interfaces.Writer;
 
-public class MyMapReduce implements MapReduce {
+public class MapReduce implements interfaces.MapReduce {
 	private static final long serialVersionUID = 1L;
 
 	// MapReduce program that compute word counts
@@ -36,7 +33,7 @@ public class MyMapReduce implements MapReduce {
 		}
 		for (String k : hm.keySet()) writer.write(new KV(k,hm.get(k).toString()));
 	}
-
+/* 
 	public static void main(String args[]) {
 		try {
 			long t1 = System.currentTimeMillis();
@@ -48,4 +45,5 @@ public class MyMapReduce implements MapReduce {
 			e.printStackTrace();
 		}
 	}
+*/
 }

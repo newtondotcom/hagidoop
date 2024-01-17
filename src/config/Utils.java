@@ -4,119 +4,145 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.rmi.Naming;
+
+import daemon.Worker;
+import impl.ImplFileRW;
+import interfaces.FileReaderWriter;
 
 public class Utils {
 
-    // récupérer la taille du fragment indiqué dans le fichier de configuration
-    public static int recuptaille(String path) {
-        File file = new File(path);
+    public static int recupTaille(String path) {
         int cpt = 0;
-        BufferedReader br;
-        int Taillefr = 0;
-        try {
-            br = new BufferedReader(new FileReader(file));
-            String st;
-            while ((st = br.readLine()) != null) {
-                if (!st.startsWith("#")) {
-                    if (cpt == 3) {
-                        Taillefr = Integer.parseInt(st);
-                    }
-                    cpt++;
-                }
+        int taille = 0;
+        ImplFileRW reader = new ImplFileRW(0, path, FileReaderWriter.FMT_TXT);
+        reader.open("r");
+        String st;
+        while ((st = reader.readtxt()) != null) {
+            if (cpt == 3) {
+                taille = Integer.parseInt(st);
             }
-            br.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+            cpt++;
         }
-
-        return Taillefr;
+        reader.close();
+        return taille;
 
     }
 
-    // récupérer noms des machines indiqués dans le fichier de configuration
-    public static String[] recupnom(String path, Integer nbServers) {
-        File file = new File(path);
+    public static String[] recupNom(String path, Integer nbServers) {
         int cpt = 0;
         int nbMachines = nbServers;
+        ImplFileRW reader = new ImplFileRW(0, path, FileReaderWriter.FMT_TXT);
+        reader.open("r");
         String[] noms = new String[nbMachines];
-        BufferedReader br;
-        try {
-            br = new BufferedReader(new FileReader(file));
-            String st;
-            while ((st = br.readLine()) != null) {
-                // si la ligne n'est pas un commentaire
-                if (!st.startsWith("#")) {
-                    // noms des machines
-                    if (cpt == 0) {
-                        noms = st.split(",");
-                    }
-                    cpt++;
-                }
+        String st;
+        while ((st = reader.readtxt()) != null) {
+            if (cpt == 0) {
+                noms = st.split(",");
             }
-
-            br.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+            cpt++;
         }
+        reader.close();
 
         return noms;
 
     }
 
-    // récupérer les ports indiqués dans le fichier de configuration
-    public static int[] recupport(String path, Integer nbServers) {
-        File file = new File(path);
+    public static int[] recupPorts(String path, Integer nbServers) {
         int cpt = 0;
         int nbMachines = nbServers;
+        ImplFileRW reader = new ImplFileRW(0, path, FileReaderWriter.FMT_TXT);
+        reader.open("r");
+        String[] ports = new String[nbMachines];
+        String st;
+        while ((st = reader.readtxt()) != null) {
+            if (cpt == 1) {
+                ports = st.split(",");
+            }
+            cpt++;
+        }
+        reader.close();
+
+        int[] tabports = new int [nbMachines];
+        for (int i=0; i<nbMachines; i++){
+            tabports[i] = Integer.parseInt(ports[i]);
+        }
+        return tabports;
+
+    }
+
+    public static int[] recupRMI(String path, Integer nbServers) {
+        int cpt = 0;
+        int nbMachines = nbServers;
+        ImplFileRW reader = new ImplFileRW(0, path, FileReaderWriter.FMT_TXT);
+        reader.open("r");
         String[] ports = new String[nbMachines];
         BufferedReader br;
-        try {
-            br = new BufferedReader(new FileReader(file));
-            String st;
-            while ((st = br.readLine()) != null) {
-                if (!st.startsWith("#")) {
-                    if (cpt == 1) {
-                        ports = st.split(",");
-                    }
-                    cpt++;
-                }
+        String st;
+        while ((st = reader.readtxt()) != null) {
+            if (cpt == 2) {
+                ports = st.split(",");
             }
-            br.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+            cpt++;
         }
+        reader.close();
 
-        int[] intports = new int [nbMachines];
+        int[] tabports = new int [nbMachines];
         for (int i=0; i<nbMachines; i++){
-            intports[i] = Integer.parseInt(ports[i]);
+            tabports[i] = Integer.parseInt(ports[i]);
         }
-        return intports;
+        return tabports;
 
     }
 
-    public static int recupnbmachines(String path) {
-        File file = new File(path);
+    public static int recupNbMachines(String path) {
         int cpt = 0;
         int nbMachines = 0;
-        BufferedReader br;
-        try {
-            br = new BufferedReader(new FileReader(file));
-            String st;
-            while ((st = br.readLine()) != null) {
-                if (!st.startsWith("#")) {
-                    if (cpt == 0) {
-                        nbMachines = st.split(",").length;
-                    }
-                    cpt++;
-                }
+        ImplFileRW reader = new ImplFileRW(0, path, FileReaderWriter.FMT_TXT);
+        reader.open("r");
+        String st;
+        while ((st = reader.readtxt()) != null) {
+            if (cpt == 0) {
+                nbMachines = st.split(",").length;
             }
-            br.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+            cpt++;
         }
-
+        reader.close();
         return nbMachines;
-
     }
+
+    public static String[] recupURLWorker(String _path, int _nbMachines){
+		int[] ports = new int[_nbMachines];
+		String[] noms = new String[_nbMachines];
+		String[] urls = new String[_nbMachines];
+
+        noms = recupNom(_path, _nbMachines);
+        ports = recupRMI(_path, _nbMachines);
+
+        if (noms.length != 0 && ports.length == noms.length) {
+            for (int i=0 ; i < _nbMachines ; i++) {
+                urls[i] = "//" + noms[i] + ":" + ports[i] + "/Worker";
+            }
+        } else {
+				System.err.println("Problème avec la création des urls dans HagidoopClient");
+        }
+    return urls;
+  }
+
+  public static Worker[] recupWorker(String _path) {
+    int nbMachines = config.Utils.recupNbMachines(_path);
+    Worker[] listWorker = new Worker[nbMachines];
+    String[] urlWorker = recupURLWorker(_path, nbMachines);
+    try {
+      for (int i = 0 ; i < nbMachines ; i++) {
+          System.out.println(urlWorker[i]);
+          listWorker[i]=(Worker) Naming.lookup(urlWorker[i]);
+          System.out.println("Worker " + i + " récupéré");
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return listWorker;
+  }
 
 }
